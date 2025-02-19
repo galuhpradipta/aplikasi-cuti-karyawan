@@ -25,6 +25,20 @@ export const register = async (req, res) => {
     try {
         const { email, password, name, roleId, nik } = req.body;
 
+        // Validate required fields
+        if (!email || !password || !name || !roleId || !nik) {
+            return res.status(400).json({
+                message: 'Missing required fields',
+                details: {
+                    email: !email,
+                    password: !password,
+                    name: !name,
+                    roleId: !roleId,
+                    nik: !nik
+                }
+            });
+        }
+
         // Check if user already exists (email)
         const existingUserByEmail = await prisma.user.findUnique({
             where: { email },
@@ -41,6 +55,15 @@ export const register = async (req, res) => {
 
         if (existingUserByNIK) {
             return res.status(400).json({ message: 'User with this NIK already exists' });
+        }
+
+        // Validate roleId exists
+        const role = await prisma.role.findUnique({
+            where: { id: roleId },
+        });
+
+        if (!role) {
+            return res.status(400).json({ message: 'Invalid role ID' });
         }
 
         // Hash password
@@ -77,7 +100,28 @@ export const register = async (req, res) => {
         });
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ message: 'Error registering user' });
+
+        // Provide more detailed error message based on the error type
+        if (error.code === 'P2002') {
+            // Unique constraint violation
+            return res.status(400).json({
+                message: 'Unique constraint violation',
+                field: error.meta?.target?.[0],
+                details: error.message
+            });
+        } else if (error.code === 'P2003') {
+            // Foreign key constraint violation
+            return res.status(400).json({
+                message: 'Invalid relationship',
+                field: error.meta?.field_name,
+                details: error.message
+            });
+        }
+
+        res.status(500).json({
+            message: 'Error registering user',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 };
 
