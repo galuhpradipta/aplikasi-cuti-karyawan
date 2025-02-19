@@ -5,6 +5,7 @@ import {
     getLeaveRequest,
     updateLeaveRequest,
     deleteLeaveRequest,
+    getStats,
 } from '../controllers/leaveRequestController.js';
 import { authenticateToken } from '../middleware/authMiddleware.js';
 
@@ -12,6 +13,9 @@ const router = express.Router();
 
 // All routes require authentication
 router.use(authenticateToken);
+
+// Get dashboard stats
+router.get('/stats', getStats);
 
 // Create a new leave request
 router.post('/', createLeaveRequest);

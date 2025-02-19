@@ -405,4 +405,84 @@ export const deleteLeaveRequest = async (req, res) => {
         console.error('Error deleting leave request:', error);
         res.status(500).json({ message: 'Terjadi kesalahan saat menghapus pengajuan cuti' });
     }
+};
+
+// Get leave request stats for dashboard
+export const getStats = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get remaining leave days (assuming 12 days per year)
+        const currentYear = new Date().getFullYear();
+        const startDate = new Date(currentYear, 0, 1); // January 1st of current year
+        const endDate = new Date(currentYear, 11, 31); // December 31st of current year
+
+        const approvedLeaves = await prisma.leaveRequest.findMany({
+            where: {
+                userId,
+                status: 'APPROVED',
+                startDate: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            select: {
+                startDate: true,
+                endDate: true
+            }
+        });
+
+        const usedDays = approvedLeaves.reduce((total, leave) => {
+            const start = new Date(leave.startDate);
+            const end = new Date(leave.endDate);
+            const duration = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            return total + duration;
+        }, 0);
+
+        const remainingDays = 12 - usedDays; // Assuming 12 days per year
+
+        // Get pending requests count
+        const pendingRequests = await prisma.leaveRequest.count({
+            where: {
+                userId,
+                status: 'PENDING'
+            }
+        });
+
+        // Get approved requests count for current year
+        const approvedRequests = await prisma.leaveRequest.count({
+            where: {
+                userId,
+                status: 'APPROVED',
+                startDate: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            }
+        });
+
+        // Get recent leave requests
+        const recentRequests = await prisma.leaveRequest.findMany({
+            where: {
+                userId
+            },
+            include: {
+                leaveType: true
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            take: 5
+        });
+
+        res.json({
+            remainingDays,
+            pendingRequests,
+            approvedRequests,
+            recentRequests
+        });
+    } catch (error) {
+        console.error('Error fetching leave request stats:', error);
+        res.status(500).json({ message: 'Error fetching leave request stats' });
+    }
 }; 
