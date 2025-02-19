@@ -1,16 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import leaveRequestService, { LeaveRequest } from '../services/leaveRequestService';
+import leaveTypeService, { LeaveType } from '../services/leaveTypeService';
 import dayjs from 'dayjs';
 import DashboardLayout from '../components/DashboardLayout';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import "../styles/datepicker.css";
+
+const CustomDatePickerInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>((props, ref) => (
+    <div className="relative">
+        <input
+            {...props}
+            ref={ref}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base pl-4"
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
+    </div>
+));
+
+CustomDatePickerInput.displayName = 'CustomDatePickerInput';
 
 const LeaveRequestPage: React.FC = () => {
     const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+    const [leaveTypes, setLeaveTypes] = useState<LeaveType[]>([]);
     const [open, setOpen] = useState(false);
     const [editId, setEditId] = useState<number | null>(null);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
+    const [startDate, setStartDate] = useState<Date | null>(null);
+    const [endDate, setEndDate] = useState<Date | null>(null);
     const [reason, setReason] = useState('');
+    const [leaveTypeId, setLeaveTypeId] = useState<number>(0);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | string[]>('');
 
     const fetchLeaveRequests = async () => {
         try {
@@ -21,39 +45,72 @@ const LeaveRequestPage: React.FC = () => {
         }
     };
 
+    const fetchLeaveTypes = async () => {
+        try {
+            const data = await leaveTypeService.getAll();
+            setLeaveTypes(data);
+            if (data.length > 0) {
+                setLeaveTypeId(data[0].id);
+            }
+        } catch (error) {
+            console.error('Error fetching leave types:', error);
+        }
+    };
+
     useEffect(() => {
         fetchLeaveRequests();
+        fetchLeaveTypes();
     }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!startDate || !endDate || !reason) {
+        setError('');
+
+        if (!startDate || !endDate || !reason || !leaveTypeId) {
+            setError('Semua field harus diisi');
             return;
         }
 
         setLoading(true);
         try {
+            const formattedStartDate = dayjs(startDate).format('YYYY-MM-DD');
+            const formattedEndDate = dayjs(endDate).format('YYYY-MM-DD');
+
             if (editId) {
                 await leaveRequestService.update(editId, {
-                    startDate,
-                    endDate,
+                    startDate: formattedStartDate,
+                    endDate: formattedEndDate,
                     reason,
+                    leaveTypeId,
                 });
             } else {
                 await leaveRequestService.create({
-                    startDate,
-                    endDate,
+                    startDate: formattedStartDate,
+                    endDate: formattedEndDate,
                     reason,
+                    leaveTypeId,
                 });
             }
             setOpen(false);
             setEditId(null);
-            setStartDate('');
-            setEndDate('');
+            setStartDate(null);
+            setEndDate(null);
             setReason('');
+            setLeaveTypeId(leaveTypes[0]?.id || 0);
             fetchLeaveRequests();
-        } catch (error) {
-            console.error('Error submitting leave request:', error);
+        } catch (error: unknown) {
+            if (error && typeof error === 'object' && 'response' in error && error.response && typeof error.response === 'object' && 'data' in error.response) {
+                const responseData = error.response.data as { errors?: string[]; message?: string };
+                if (responseData.errors) {
+                    setError(responseData.errors);
+                } else if (responseData.message) {
+                    setError(responseData.message);
+                } else {
+                    setError('Terjadi kesalahan saat menyimpan pengajuan cuti');
+                }
+            } else {
+                setError('Terjadi kesalahan saat menyimpan pengajuan cuti');
+            }
         } finally {
             setLoading(false);
         }
@@ -61,9 +118,10 @@ const LeaveRequestPage: React.FC = () => {
 
     const handleEdit = (request: LeaveRequest) => {
         setEditId(request.id);
-        setStartDate(request.startDate.split('T')[0]);
-        setEndDate(request.endDate.split('T')[0]);
+        setStartDate(new Date(request.startDate));
+        setEndDate(new Date(request.endDate));
         setReason(request.reason);
+        setLeaveTypeId(request.leaveType.id);
         setOpen(true);
     };
 
@@ -91,19 +149,21 @@ const LeaveRequestPage: React.FC = () => {
         }
     };
 
+    const today = new Date();
+
     return (
         <DashboardLayout>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-semibold text-gray-900">Pengajuan Cuti</h1>
+            <div className="flex justify-between items-center mb-8">
+                <h1 className="text-3xl font-bold tracking-tight text-gray-900">Pengajuan Cuti</h1>
                 <button
                     onClick={() => {
                         setEditId(null);
-                        setStartDate('');
-                        setEndDate('');
+                        setStartDate(null);
+                        setEndDate(null);
                         setReason('');
                         setOpen(true);
                     }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium"
                 >
                     Buat Pengajuan Cuti
                 </button>
@@ -113,6 +173,9 @@ const LeaveRequestPage: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Tipe Cuti
+                            </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Tanggal Mulai
                             </th>
@@ -136,6 +199,9 @@ const LeaveRequestPage: React.FC = () => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {leaveRequests.map((request) => (
                             <tr key={request.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {request.leaveType.name}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                     {dayjs(request.startDate).format('DD/MM/YYYY')}
                                 </td>
@@ -178,60 +244,144 @@ const LeaveRequestPage: React.FC = () => {
             </div>
 
             {open && (
-                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center">
+                <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-8 max-w-md w-full">
-                        <h2 className="text-xl font-semibold mb-6">
-                            {editId ? 'Edit Pengajuan Cuti' : 'Pengajuan Cuti Baru'}
-                        </h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold tracking-tight text-gray-900">
+                                {editId ? 'Edit Pengajuan Cuti' : 'Pengajuan Cuti Baru'}
+                            </h2>
+                            <button
+                                onClick={() => {
+                                    setOpen(false);
+                                    setError('');
+                                }}
+                                className="text-gray-400 hover:text-gray-500"
+                            >
+                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                    Tipe Cuti
+                                </label>
+                                <select
+                                    value={leaveTypeId}
+                                    onChange={(e) => setLeaveTypeId(Number(e.target.value))}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
+                                    required
+                                >
+                                    <option value="">Pilih Tipe Cuti</option>
+                                    {leaveTypes.map((type) => (
+                                        <option key={type.id} value={type.id}>
+                                            {type.name} {type.maxDays ? `(Max ${type.maxDays} hari)` : ''}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
                                     Tanggal Mulai
                                 </label>
-                                <input
-                                    type="date"
-                                    value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                <DatePicker
+                                    selected={startDate}
+                                    onChange={(date: Date | null) => {
+                                        setStartDate(date);
+                                        if (date && endDate && date > endDate) {
+                                            setEndDate(date);
+                                        }
+                                    }}
+                                    minDate={today}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="Pilih tanggal mulai"
                                     required
+                                    customInput={<CustomDatePickerInput />}
+                                    popperClassName="react-datepicker-left"
+                                    calendarClassName="custom-calendar"
+                                    popperPlacement="bottom-start"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
                                     Tanggal Selesai
                                 </label>
-                                <input
-                                    type="date"
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                <DatePicker
+                                    selected={endDate}
+                                    onChange={(date: Date | null) => setEndDate(date)}
+                                    minDate={startDate || today}
+                                    dateFormat="dd/MM/yyyy"
+                                    placeholderText="Pilih tanggal selesai"
                                     required
+                                    customInput={<CustomDatePickerInput />}
+                                    popperClassName="react-datepicker-left"
+                                    calendarClassName="custom-calendar"
+                                    popperPlacement="bottom-start"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
+                                <label className="block text-sm font-semibold text-gray-700 mb-1">
                                     Alasan
                                 </label>
                                 <textarea
                                     value={reason}
                                     onChange={(e) => setReason(e.target.value)}
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-base"
                                     rows={4}
-                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     required
+                                    minLength={10}
+                                    maxLength={500}
+                                    placeholder="Minimal 10 karakter"
                                 />
+                                <p className="mt-1 text-sm text-gray-500">
+                                    {reason.length}/500 karakter
+                                </p>
                             </div>
-                            <div className="flex justify-end space-x-3 mt-6">
+
+                            {error && (
+                                <div className="rounded-md bg-red-50 p-4">
+                                    <div className="flex">
+                                        <div className="flex-shrink-0">
+                                            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                            </svg>
+                                        </div>
+                                        <div className="ml-3">
+                                            <h3 className="text-sm font-medium text-red-800">
+                                                Terjadi kesalahan
+                                            </h3>
+                                            <div className="mt-2 text-sm text-red-700">
+                                                {Array.isArray(error) ? (
+                                                    <ul className="list-disc pl-5 space-y-1">
+                                                        {error.map((err, index) => (
+                                                            <li key={index}>{err}</li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <p>{error}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="flex justify-end space-x-3 pt-2">
                                 <button
                                     type="button"
-                                    onClick={() => setOpen(false)}
-                                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    onClick={() => {
+                                        setOpen(false);
+                                        setError('');
+                                    }}
+                                    className="inline-flex justify-center py-2.5 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                     Batal
                                 </button>
                                 <button
                                     type="submit"
-                                    disabled={loading || !startDate || !endDate || !reason}
-                                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                                    disabled={loading}
+                                    className="inline-flex justify-center py-2.5 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                                 >
                                     {loading ? 'Menyimpan...' : 'Simpan'}
                                 </button>

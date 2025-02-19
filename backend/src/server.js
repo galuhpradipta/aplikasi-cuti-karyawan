@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import leaveRequestRoutes from './routes/leaveRequestRoutes.js';
+import leaveTypeRoutes from './routes/leaveTypeRoutes.js';
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
+app.use('/api/leave-types', leaveTypeRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

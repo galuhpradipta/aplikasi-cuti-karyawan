@@ -1,4 +1,5 @@
 import api from "./api";
+import { LeaveType } from "./leaveTypeService";
 
 export interface LeaveRequest {
   id: number;
@@ -7,6 +8,7 @@ export interface LeaveRequest {
   reason: string;
   status: string;
   createdAt: string;
+  leaveType: LeaveType;
   approvals: Array<{
     id: number;
     status: string;
@@ -26,12 +28,14 @@ export interface CreateLeaveRequestData {
   startDate: string;
   endDate: string;
   reason: string;
+  leaveTypeId: number;
 }
 
 export interface UpdateLeaveRequestData {
   startDate: string;
   endDate: string;
   reason: string;
+  leaveTypeId: number;
 }
 
 const leaveRequestService = {

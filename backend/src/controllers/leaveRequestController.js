@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 // Validate leave request input
-const validateLeaveRequest = (startDate, endDate, reason) => {
+const validateLeaveRequest = async (startDate, endDate, reason, leaveTypeId, userId) => {
     const errors = [];
 
     // Check if dates are valid
@@ -36,17 +36,60 @@ const validateLeaveRequest = (startDate, endDate, reason) => {
         errors.push('Alasan tidak boleh lebih dari 500 karakter');
     }
 
+    // Validate leave type
+    const leaveType = await prisma.leaveType.findUnique({
+        where: { id: leaveTypeId },
+    });
+
+    if (!leaveType) {
+        errors.push('Tipe cuti tidak valid');
+        return errors;
+    }
+
+    // Calculate total days
+    const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // If leave type has max days, validate against it
+    if (leaveType.maxDays !== null) {
+        // Get total days used for this leave type in the current year
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const endOfYear = new Date(now.getFullYear(), 11, 31);
+
+        const usedLeaveRequests = await prisma.leaveRequest.findMany({
+            where: {
+                userId,
+                leaveTypeId,
+                status: { not: 'REJECTED' },
+                startDate: {
+                    gte: startOfYear,
+                    lte: endOfYear,
+                },
+            },
+        });
+
+        const totalUsedDays = usedLeaveRequests.reduce((total, request) => {
+            const requestStart = new Date(request.startDate);
+            const requestEnd = new Date(request.endDate);
+            const days = Math.ceil((requestEnd.getTime() - requestStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+            return total + days;
+        }, 0);
+
+        if (totalUsedDays + daysDiff > leaveType.maxDays) {
+            errors.push(`Jumlah hari cuti ${leaveType.name} melebihi batas maksimal (${leaveType.maxDays} hari per tahun)`);
+        }
+    }
+
     return errors;
 };
 
 // Create a new leave request
 export const createLeaveRequest = async (req, res) => {
     try {
-        const { startDate, endDate, reason } = req.body;
+        const { startDate, endDate, reason, leaveTypeId } = req.body;
         const userId = req.user.id;
 
         // Validate input
-        const validationErrors = validateLeaveRequest(startDate, endDate, reason);
+        const validationErrors = await validateLeaveRequest(startDate, endDate, reason, leaveTypeId, userId);
         if (validationErrors.length > 0) {
             return res.status(400).json({
                 message: 'Validasi gagal',
@@ -85,6 +128,7 @@ export const createLeaveRequest = async (req, res) => {
         const leaveRequest = await prisma.leaveRequest.create({
             data: {
                 userId,
+                leaveTypeId,
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
                 reason: reason.trim(),
@@ -98,6 +142,7 @@ export const createLeaveRequest = async (req, res) => {
                         role: true,
                     },
                 },
+                leaveType: true,
             },
         });
 
@@ -155,6 +200,7 @@ export const getUserLeaveRequests = async (req, res) => {
                 userId,
             },
             include: {
+                leaveType: true,
                 approvals: {
                     include: {
                         approver: {
@@ -194,6 +240,7 @@ export const getLeaveRequest = async (req, res) => {
                 userId,
             },
             include: {
+                leaveType: true,
                 approvals: {
                     include: {
                         approver: {
@@ -222,7 +269,7 @@ export const getLeaveRequest = async (req, res) => {
 export const updateLeaveRequest = async (req, res) => {
     try {
         const { id } = req.params;
-        const { startDate, endDate, reason } = req.body;
+        const { startDate, endDate, reason, leaveTypeId } = req.body;
         const userId = req.user.id;
 
         if (isNaN(parseInt(id))) {
@@ -230,7 +277,7 @@ export const updateLeaveRequest = async (req, res) => {
         }
 
         // Validate input
-        const validationErrors = validateLeaveRequest(startDate, endDate, reason);
+        const validationErrors = await validateLeaveRequest(startDate, endDate, reason, leaveTypeId, userId);
         if (validationErrors.length > 0) {
             return res.status(400).json({
                 message: 'Validasi gagal',
@@ -290,8 +337,10 @@ export const updateLeaveRequest = async (req, res) => {
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
                 reason: reason.trim(),
+                leaveTypeId,
             },
             include: {
+                leaveType: true,
                 approvals: {
                     include: {
                         approver: {
