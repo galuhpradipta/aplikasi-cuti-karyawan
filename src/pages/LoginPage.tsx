@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { authService, LoginCredentials } from '../services/api';
 import { AxiosError } from 'axios';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
     const navigate = useNavigate();
+    const { login } = useAuth();
     const [credentials, setCredentials] = useState<LoginCredentials>({
         email: '',
         password: '',
@@ -26,7 +28,9 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
-            await authService.login(credentials);
+            const response = await authService.login(credentials);
+            // Store user data and token using the AuthContext
+            login(response.token, response.user);
             navigate('/dashboard');
         } catch (err: unknown) {
             const error = err as AxiosError<{ message: string }>;

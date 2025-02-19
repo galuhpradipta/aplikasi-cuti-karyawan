@@ -1,25 +1,11 @@
-import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
+import DashboardLayout from '../components/DashboardLayout';
 
 export default function DashboardPage() {
-    const navigate = useNavigate();
-
-    const handleLogout = () => {
-        authService.logout();
-        navigate('/login');
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex justify-between items-center mb-8">
+        <DashboardLayout>
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-                    <button
-                        onClick={handleLogout}
-                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
-                    >
-                        Logout
-                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -39,7 +25,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                <div className="mt-8 bg-white rounded-lg shadow">
+                <div className="bg-white rounded-lg shadow">
                     <div className="px-6 py-4 border-b border-gray-200">
                         <h2 className="text-lg font-medium text-gray-900">Recent Leave Requests</h2>
                     </div>
@@ -57,6 +43,9 @@ export default function DashboardPage() {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                             Status
                                         </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200">
@@ -72,6 +61,11 @@ export default function DashboardPage() {
                                                 Pending
                                             </span>
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <button className="text-blue-600 hover:text-blue-800">
+                                                View Details
+                                            </button>
+                                        </td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -79,6 +73,6 @@ export default function DashboardPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </DashboardLayout>
     );
 } 
