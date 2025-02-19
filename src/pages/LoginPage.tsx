@@ -34,7 +34,7 @@ export default function LoginPage() {
             navigate('/dashboard');
         } catch (err: unknown) {
             const error = err as AxiosError<{ message: string }>;
-            setError(error.response?.data?.message || 'An error occurred during login');
+            setError(error.response?.data?.message || 'Terjadi kesalahan saat login');
         } finally {
             setLoading(false);
         }
@@ -52,17 +52,17 @@ export default function LoginPage() {
                         </div>
                     </div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Welcome Back
+                        Selamat Datang Kembali
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Sign in to your account
+                        Masuk ke akun Anda
                     </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label htmlFor="email" className="sr-only">
-                                Email address
+                                Alamat Email
                             </label>
                             <input
                                 id="email"
@@ -70,14 +70,14 @@ export default function LoginPage() {
                                 type="email"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                placeholder="Alamat Email"
                                 value={credentials.email}
                                 onChange={handleChange}
                             />
                         </div>
                         <div>
                             <label htmlFor="password" className="sr-only">
-                                Password
+                                Kata Sandi
                             </label>
                             <input
                                 id="password"
@@ -85,7 +85,7 @@ export default function LoginPage() {
                                 type="password"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
+                                placeholder="Kata Sandi"
                                 value={credentials.password}
                                 onChange={handleChange}
                             />
@@ -102,14 +102,14 @@ export default function LoginPage() {
                             disabled={loading}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                         >
-                            {loading ? 'Signing in...' : 'Sign in'}
+                            {loading ? 'Sedang Masuk...' : 'Masuk'}
                         </button>
 
                         <Link
                             to="/register"
                             className="w-full flex justify-center py-2 px-4 border border-blue-600 text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                         >
-                            Create new account
+                            Buat akun baru
                         </Link>
                     </div>
                 </form>

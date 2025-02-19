@@ -1,16 +1,44 @@
-Below is a suggested planning and architectural structure for building a simple “Aplikasi Cuti Karyawan” using JavaScript (with Vite for the frontend) and MySQL as the database. This includes roles (Karyawan, Kepala Divisi, HRD, Direktur) and a multi-step approval flow.
+# Aplikasi Cuti Karyawan - PRD (Product Requirements Document)
+
+## Notes & Updates
+
+1. Bahasa yang digunakan dalam aplikasi adalah Bahasa Indonesia
+2. Role/Peran dalam sistem:
+   - Karyawan: Dapat mengajukan cuti
+   - Kepala Divisi: Approval level 1
+   - HRD: Approval level 2
+   - Direktur: Approval level 3 (final)
+3. Flow Approval:
+   - Karyawan mengajukan cuti
+   - Kepala Divisi menyetujui/menolak
+   - Jika disetujui, lanjut ke HRD
+   - Jika HRD setuju, lanjut ke Direktur
+   - Keputusan final ada di Direktur
+4. Status Cuti:
+   - PENDING: Menunggu persetujuan
+   - APPROVED: Disetujui
+   - REJECTED: Ditolak
+   - CANCELED: Dibatalkan
+
+Below is a suggested planning and architectural structure for building a simple "Aplikasi Cuti Karyawan" using JavaScript (with Vite for the frontend) and MySQL as the database. This includes roles (Karyawan, Kepala Divisi, HRD, Direktur) and a multi-step approval flow.
 
 1. Overview
 
-Objective:
-Build a leave management system where employees (Karyawan) can submit leave requests which require sequential approvals from: 1. Kepala Divisi 2. HRD 3. Direktur
+Tujuan:
+Membangun sistem manajemen cuti karyawan dimana karyawan dapat mengajukan permintaan cuti yang memerlukan persetujuan berurutan dari: 1. Kepala Divisi 2. HRD 3. Direktur
 
-Key Features:
-• User Management: Admin or HRD can create new user accounts with specific roles.
-• Role-Based Access: Enforce different permission levels for Karyawan, Kepala Divisi, HRD, and Direktur.
-• Leave Request Flow: 1. Karyawan requests leave. 2. Request goes to Kepala Divisi for approval. 3. If approved, request goes to HRD for approval. 4. If approved by HRD, request goes to Direktur for final approval. 5. Once Direktur approves, the leave is officially granted.
-• Notifications or status indicators for each step of approval.
-• History/Log: View the status and history of each leave request.
+Fitur Utama:
+• Manajemen Pengguna: Admin atau HRD dapat membuat akun pengguna baru dengan peran tertentu.
+• Akses Berbasis Peran: Menerapkan tingkat izin berbeda untuk Karyawan, Kepala Divisi, HRD, dan Direktur.
+• Alur Permintaan Cuti:
+
+1. Karyawan mengajukan cuti
+2. Permintaan diteruskan ke Kepala Divisi untuk persetujuan
+3. Jika disetujui, permintaan diteruskan ke HRD
+4. Jika disetujui HRD, permintaan diteruskan ke Direktur
+5. Setelah Direktur menyetujui, cuti resmi diberikan
+   • Notifikasi atau indikator status untuk setiap tahap persetujuan
+   • Riwayat/Log: Melihat status dan riwayat setiap permintaan cuti
 
 Tech Stack:
 • Frontend:
@@ -75,14 +103,14 @@ app-cuti-karyawan/
 
 Here is a simple schema to handle user roles, leave requests, and approvals:
 
-3.1. roles Table
+3.1. roles Table (Tabel Peran)
 
 CREATE TABLE roles (
 id INT AUTO_INCREMENT PRIMARY KEY,
-role_name VARCHAR(50) NOT NULL -- e.g. Karyawan, Kepala Divisi, HRD, Direktur
+role_name VARCHAR(50) NOT NULL -- contoh: Karyawan, Kepala Divisi, HRD, Direktur
 );
 
-3.2. users Table
+3.2. users Table (Tabel Pengguna)
 
 CREATE TABLE users (
 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -95,7 +123,7 @@ FOREIGN KEY (role_id) REFERENCES roles(id)
 
     •	You could also store hashed passwords in password.
 
-3.3. leave_requests Table
+3.3. leave_requests Table (Tabel Permintaan Cuti)
 
 CREATE TABLE leave_requests (
 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -109,9 +137,9 @@ FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
     •	status at the high level can be PENDING, APPROVED, REJECTED, etc.
-    •	Alternatively, you can track each level’s approval with a separate table or columns.
+    •	Alternatively, you can track each level's approval with a separate table or columns.
 
-3.4. approvals Table
+3.4. approvals Table (Tabel Persetujuan)
 
 This table stores the sequential approval flow.
 
@@ -144,13 +172,13 @@ FOREIGN KEY (approver_id) REFERENCES users(id)
       • If approved, update approvals.status = 'APPROVED' for that record.
       • If rejected, update approvals.status = 'REJECTED'. The leave request can be considered closed or rejected.
    4. HRD Approves / Rejects
-      • If Kepala Divisi’s approval was successful, HRD sees the next pending item (order = 2).
+      • If Kepala Divisi's approval was successful, HRD sees the next pending item (order = 2).
       • HRD can approve or reject.
       • The same flow continues.
    5. Direktur Approves / Rejects
       • Lastly, Direktur checks pending approvals (order = 3).
       • If approved, the entire request is considered APPROVED (or final status in leave_requests).
-      • Otherwise, it’s REJECTED.
+      • Otherwise, it's REJECTED.
    6. Leave Request Status
       • If any level rejects, the request is rejected.
       • If all levels approve in sequence, the request is fully approved.
@@ -354,8 +382,8 @@ To enforce roles:
 • Compare with required role or check if the user is authorized to approve.
 • Frontend:
 • Hide or disable certain UI elements for roles without permission.
-• E.g., a Karyawan sees a “Request Leave” page but not an “Approval” page.
-• A Kepala Divisi sees “Approval” for only order=1 approvals, etc.
+• E.g., a Karyawan sees a "Request Leave" page but not an "Approval" page.
+• A Kepala Divisi sees "Approval" for only order=1 approvals, etc.
 
 8. Step-by-Step Implementation Plan
 
@@ -372,9 +400,9 @@ To enforce roles:
    4. Frontend
       • Build basic pages/components:
       • Login -> on success store JWT or session.
-      • Dashboard -> if Karyawan, show “Request Leave” button. If Approver, show “Pending Approvals” list.
+      • Dashboard -> if Karyawan, show "Request Leave" button. If Approver, show "Pending Approvals" list.
       • Leave Request Form -> submit new request.
-      • Approval List -> show requests that need current user’s approval.
+      • Approval List -> show requests that need current user's approval.
    5. Testing & Validation
       • Seed the DB with sample roles and users.
       • Test the flow end-to-end: Karyawan -> Kepala Divisi -> HRD -> Direktur.
@@ -382,14 +410,14 @@ To enforce roles:
       • Possibly deploy the Node.js server to a service like Heroku, Railway, or your own server.
       • Build the Vite frontend (npm run build) and serve statically or place behind a reverse proxy.
 
-9. Possible Enhancements
-   • Email Notifications: Send email to the next approver when a request is submitted or approved.
-   • Reporting: Generate monthly or yearly reports of leave usage.
-   • Calendar Integration: Show a calendar of who is on leave on particular days.
-   • Security: Add CSRF protection, stricter validations, logs, etc.
+9. Possible Enhancements (Pengembangan Lanjutan)
+   • Notifikasi Email: Kirim email ke approver berikutnya ketika permintaan diajukan atau disetujui
+   • Pelaporan: Menghasilkan laporan bulanan atau tahunan penggunaan cuti
+   • Integrasi Kalender: Menampilkan kalender siapa yang sedang cuti pada hari tertentu
+   • Keamanan: Menambahkan perlindungan CSRF, validasi yang lebih ketat, log, dll.
 
-Conclusion
+Kesimpulan
 
-This outline provides a planning structure for developing a simple multi-step leave approval system with JavaScript (Vite) on the frontend and Node.js + MySQL on the backend. The core is: 1. Defining data models (users, roles, leave requests, approvals). 2. Implementing API endpoints for CRUD and approval logic. 3. Creating a simple frontend with distinct pages for requesting leave and approving requests based on user role.
+Dokumen ini memberikan struktur perencanaan untuk mengembangkan sistem persetujuan cuti bertingkat dengan JavaScript (Vite) di frontend dan Node.js + MySQL di backend. Intinya adalah: 1. Mendefinisikan model data (pengguna, peran, permintaan cuti, persetujuan). 2. Mengimplementasikan endpoint API untuk CRUD dan logika persetujuan. 3. Membuat antarmuka frontend sederhana dengan halaman berbeda untuk meminta cuti dan menyetujui permintaan berdasarkan peran pengguna.
 
-With this plan, you can incrementally build out each part (database tables, API routes, frontend UI) and ensure a clear flow from employee leave request to final approval by the director.
+Dengan rencana ini, Anda dapat membangun setiap bagian secara bertahap (tabel database, rute API, UI frontend) dan memastikan alur yang jelas dari permintaan cuti karyawan hingga persetujuan akhir oleh direktur.

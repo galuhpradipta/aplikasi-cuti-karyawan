@@ -34,7 +34,7 @@ export default function RegisterPage() {
                 }
             } catch (error) {
                 console.error('Error fetching roles:', error);
-                setError('Error loading roles. Please try again later.');
+                setError('Gagal memuat data peran. Silakan coba lagi nanti.');
             } finally {
                 setRolesLoading(false);
             }
@@ -60,7 +60,7 @@ export default function RegisterPage() {
             navigate('/dashboard');
         } catch (err: unknown) {
             const error = err as AxiosError<{ message: string }>;
-            setError(error.response?.data?.message || 'An error occurred during registration');
+            setError(error.response?.data?.message || 'Terjadi kesalahan saat mendaftar');
         } finally {
             setLoading(false);
         }
@@ -78,17 +78,17 @@ export default function RegisterPage() {
                         </div>
                     </div>
                     <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create Account
+                        Buat Akun
                     </h2>
                     <p className="mt-2 text-center text-sm text-gray-600">
-                        Join our leave management system
+                        Bergabung dengan sistem manajemen cuti
                     </p>
                 </div>
                 <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                     <div className="rounded-md shadow-sm -space-y-px">
                         <div>
                             <label htmlFor="name" className="sr-only">
-                                Full Name
+                                Nama Lengkap
                             </label>
                             <input
                                 id="name"
@@ -96,14 +96,14 @@ export default function RegisterPage() {
                                 type="text"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Full Name"
+                                placeholder="Nama Lengkap"
                                 value={formData.name}
                                 onChange={handleChange}
                             />
                         </div>
                         <div>
                             <label htmlFor="email" className="sr-only">
-                                Email address
+                                Alamat Email
                             </label>
                             <input
                                 id="email"
@@ -111,14 +111,14 @@ export default function RegisterPage() {
                                 type="email"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Email address"
+                                placeholder="Alamat Email"
                                 value={formData.email}
                                 onChange={handleChange}
                             />
                         </div>
                         <div>
                             <label htmlFor="password" className="sr-only">
-                                Password
+                                Kata Sandi
                             </label>
                             <input
                                 id="password"
@@ -126,14 +126,14 @@ export default function RegisterPage() {
                                 type="password"
                                 required
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                placeholder="Password"
+                                placeholder="Kata Sandi"
                                 value={formData.password}
                                 onChange={handleChange}
                             />
                         </div>
                         <div>
                             <label htmlFor="roleId" className="sr-only">
-                                Role
+                                Peran
                             </label>
                             <select
                                 id="roleId"
@@ -145,7 +145,7 @@ export default function RegisterPage() {
                                 onChange={handleChange}
                             >
                                 {rolesLoading ? (
-                                    <option>Loading roles...</option>
+                                    <option>Memuat peran...</option>
                                 ) : roles.length > 0 ? (
                                     roles.map((role) => (
                                         <option key={role.id} value={role.id}>
@@ -153,7 +153,7 @@ export default function RegisterPage() {
                                         </option>
                                     ))
                                 ) : (
-                                    <option>No roles available</option>
+                                    <option>Tidak ada peran tersedia</option>
                                 )}
                             </select>
                         </div>
@@ -169,14 +169,14 @@ export default function RegisterPage() {
                             disabled={loading || rolesLoading}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50"
                         >
-                            {loading ? 'Creating account...' : 'Create account'}
+                            {loading ? 'Membuat akun...' : 'Buat akun'}
                         </button>
 
                         <Link
                             to="/login"
                             className="w-full flex justify-center py-2 px-4 border border-blue-600 text-sm font-medium rounded-md text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
                         >
-                            Already have an account? Sign in
+                            Sudah punya akun? Masuk
                         </Link>
                     </div>
                 </form>
