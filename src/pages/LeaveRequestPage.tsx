@@ -158,7 +158,7 @@ const LeaveRequestPage: React.FC = () => {
             <div className="min-h-screen bg-gray-50 py-6">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Header Section */}
-                    <div className="flex justify-between items-center mb-6">
+                    <div className="flex justify-between items-center mb-8">
                         <h1 className="text-2xl font-semibold text-gray-900">Pengajuan Cuti</h1>
                         <button
                             onClick={() => {
@@ -169,7 +169,7 @@ const LeaveRequestPage: React.FC = () => {
                                 setLeaveTypeId(leaveTypes[0]?.id || 0);
                                 setOpen(true);
                             }}
-                            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            className="inline-flex items-center px-5 py-2.5 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                         >
                             <FiPlus className="mr-2 -ml-1 h-5 w-5" />
                             Buat Pengajuan Cuti
@@ -177,32 +177,31 @@ const LeaveRequestPage: React.FC = () => {
                     </div>
 
                     {/* Leave Requests List */}
-                    <div className="space-y-4">
+                    <div className="space-y-6">
                         {leaveRequests.map((request) => (
                             <div
                                 key={request.id}
                                 className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
                             >
                                 {/* Request Header */}
-                                <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
+                                <div className="px-8 py-5 flex items-center justify-between border-b border-gray-100">
                                     <div className="flex items-center space-x-12">
                                         <div className="w-36">
-                                            <span className="text-gray-900 font-medium">
+                                            <span className="text-base font-medium text-gray-900">
                                                 {request.leaveType.name}
                                             </span>
                                         </div>
-                                        <div className="w-28">
-                                            <span className="text-gray-500">
+                                        <div className="flex items-center space-x-2 w-64">
+                                            <span className="text-sm text-gray-600">
                                                 {dayjs(request.startDate).format('DD/MM/YYYY')}
                                             </span>
-                                        </div>
-                                        <div className="w-28">
-                                            <span className="text-gray-500">
+                                            <span className="text-sm text-gray-400">-</span>
+                                            <span className="text-sm text-gray-600">
                                                 {dayjs(request.endDate).format('DD/MM/YYYY')}
                                             </span>
                                         </div>
                                         <div className="w-64">
-                                            <span className="text-gray-500">
+                                            <span className="text-sm text-gray-600">
                                                 {request.reason}
                                             </span>
                                         </div>
@@ -239,13 +238,13 @@ const LeaveRequestPage: React.FC = () => {
                                 </div>
 
                                 {/* Approval Status */}
-                                <div className="px-6 py-4 bg-gray-50">
-                                    <h4 className="text-sm font-medium text-gray-900 mb-4">Status Persetujuan</h4>
-                                    <div className="space-y-3">
+                                <div className="px-8 py-5 bg-gray-50">
+                                    <h4 className="text-base font-medium text-gray-900 mb-4">Status Persetujuan</h4>
+                                    <div className="space-y-4">
                                         {getApprovalStatusDetails(request).map((approval, index) => (
-                                            <div key={index} className="flex items-center justify-between text-sm">
+                                            <div key={index} className="flex items-center justify-between">
                                                 <div className="w-36">
-                                                    <span className="text-gray-600">{approval.role}</span>
+                                                    <span className="text-sm text-gray-600">{approval.role}</span>
                                                 </div>
                                                 <div className="flex items-center space-x-8">
                                                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${approval.status === 'PENDING'
@@ -257,10 +256,10 @@ const LeaveRequestPage: React.FC = () => {
                                                         {approval.status === 'PENDING' ? 'Menunggu' :
                                                             approval.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}
                                                     </span>
-                                                    <span className="text-gray-600 w-36">{approval.approver}</span>
-                                                    <span className="text-gray-500 w-44">{approval.approvedAt}</span>
+                                                    <span className="text-sm text-gray-600 w-36">{approval.approver}</span>
+                                                    <span className="text-sm text-gray-500 w-44">{approval.approvedAt}</span>
                                                     {approval.remarks !== '-' && (
-                                                        <span className="text-gray-600">"{approval.remarks}"</span>
+                                                        <span className="text-sm text-gray-600">"{approval.remarks}"</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -271,38 +270,50 @@ const LeaveRequestPage: React.FC = () => {
                         ))}
 
                         {leaveRequests.length === 0 && (
-                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 text-center">
-                                <p className="text-gray-500">Belum ada pengajuan cuti</p>
+                            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+                                <p className="text-base text-gray-500">Belum ada pengajuan cuti</p>
                             </div>
                         )}
                     </div>
 
                     {/* Create/Edit Modal */}
                     {open && (
-                        <div className="fixed inset-0 z-10 overflow-y-auto">
-                            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                        <div className="fixed inset-0 z-[100] overflow-y-auto">
+                            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
                                 {/* Background overlay */}
                                 <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setOpen(false)} />
 
                                 {/* Modal panel */}
-                                <div className="inline-block align-bottom bg-white rounded-xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+                                <div className="relative inline-block align-bottom bg-white rounded-xl px-8 pt-6 pb-6 text-left overflow-visible shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+                                    <div className="absolute top-0 right-0 pt-6 pr-8">
+                                        <button
+                                            type="button"
+                                            className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            <span className="sr-only">Close</span>
+                                            <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <div className="sm:flex sm:items-start">
                                         <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
-                                            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                                            <h3 className="text-2xl font-semibold text-gray-900 mb-8">
                                                 {editId ? 'Edit Pengajuan Cuti' : 'Buat Pengajuan Cuti'}
                                             </h3>
-                                            <div className="mt-4">
-                                                <form onSubmit={handleSubmit} className="space-y-4">
+                                            <div className="mt-2">
+                                                <form onSubmit={handleSubmit} className="space-y-6">
                                                     {/* Leave Type Selection */}
                                                     <div>
-                                                        <label htmlFor="leaveType" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        <label htmlFor="leaveType" className="block text-base font-medium text-gray-700 mb-2">
                                                             Jenis Cuti
                                                         </label>
                                                         <select
                                                             id="leaveType"
                                                             value={leaveTypeId}
                                                             onChange={(e) => setLeaveTypeId(Number(e.target.value))}
-                                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                                                         >
                                                             {leaveTypes.map((type) => (
                                                                 <option key={type.id} value={type.id}>
@@ -313,9 +324,9 @@ const LeaveRequestPage: React.FC = () => {
                                                     </div>
 
                                                     {/* Date Range Selection */}
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="relative">
+                                                            <label className="block text-base font-medium text-gray-700 mb-2">
                                                                 Tanggal Mulai
                                                             </label>
                                                             <DatePicker
@@ -326,12 +337,14 @@ const LeaveRequestPage: React.FC = () => {
                                                                 endDate={endDate}
                                                                 minDate={today}
                                                                 dateFormat="dd/MM/yyyy"
-                                                                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                                                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                                                                 customInput={<CustomDatePickerInput />}
+                                                                popperClassName="z-[1000]"
+                                                                popperPlacement="bottom-start"
                                                             />
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                        <div className="relative">
+                                                            <label className="block text-base font-medium text-gray-700 mb-2">
                                                                 Tanggal Selesai
                                                             </label>
                                                             <DatePicker
@@ -342,15 +355,17 @@ const LeaveRequestPage: React.FC = () => {
                                                                 endDate={endDate}
                                                                 minDate={startDate || today}
                                                                 dateFormat="dd/MM/yyyy"
-                                                                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                                                className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                                                                 customInput={<CustomDatePickerInput />}
+                                                                popperClassName="z-[1000]"
+                                                                popperPlacement="bottom-start"
                                                             />
                                                         </div>
                                                     </div>
 
                                                     {/* Reason Input */}
                                                     <div>
-                                                        <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
+                                                        <label htmlFor="reason" className="block text-base font-medium text-gray-700 mb-2">
                                                             Alasan
                                                         </label>
                                                         <textarea
@@ -358,16 +373,16 @@ const LeaveRequestPage: React.FC = () => {
                                                             value={reason}
                                                             onChange={(e) => setReason(e.target.value)}
                                                             rows={3}
-                                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                                                            className="block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 focus:border-blue-500 focus:ring-blue-500"
                                                             placeholder="Masukkan alasan cuti..."
                                                         />
                                                     </div>
 
                                                     {/* Error Display */}
                                                     {error && (
-                                                        <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                                                        <div className="text-sm text-red-600 bg-red-50 p-4 rounded-lg">
                                                             {Array.isArray(error) ? (
-                                                                <ul className="list-disc list-inside">
+                                                                <ul className="list-disc list-inside space-y-1">
                                                                     {error.map((err, index) => (
                                                                         <li key={index}>{err}</li>
                                                                     ))}
@@ -379,18 +394,18 @@ const LeaveRequestPage: React.FC = () => {
                                                     )}
 
                                                     {/* Action Buttons */}
-                                                    <div className="mt-6 sm:flex sm:flex-row-reverse">
+                                                    <div className="mt-8 sm:flex sm:flex-row-reverse">
                                                         <button
                                                             type="submit"
                                                             disabled={loading}
-                                                            className="w-full inline-flex justify-center rounded-lg border border-transparent px-6 py-2.5 bg-blue-600 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="w-full inline-flex justify-center rounded-lg border border-transparent px-8 py-3 bg-blue-600 text-base font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             {loading ? 'Menyimpan...' : 'Simpan'}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => setOpen(false)}
-                                                            className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 bg-white px-6 py-2.5 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
+                                                            className="mt-3 w-full inline-flex justify-center rounded-lg border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto"
                                                         >
                                                             Batal
                                                         </button>
