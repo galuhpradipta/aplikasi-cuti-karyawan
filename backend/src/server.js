@@ -26,8 +26,33 @@ app.get('/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ message: 'Something went wrong!' });
+    console.error('Error:', err);
+
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({
+            message: 'Invalid JSON payload',
+            error: err.message
+        });
+    }
+
+    if (err.name === 'PrismaClientKnownRequestError') {
+        return res.status(400).json({
+            message: 'Database operation failed',
+            error: err.message
+        });
+    }
+
+    if (err.name === 'PrismaClientValidationError') {
+        return res.status(400).json({
+            message: 'Invalid data provided',
+            error: err.message
+        });
+    }
+
+    res.status(err.status || 500).json({
+        message: err.message || 'Terjadi kesalahan pada server',
+        error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
 // Start server
