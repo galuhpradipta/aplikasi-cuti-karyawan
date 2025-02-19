@@ -34,17 +34,29 @@ model Role {
   updatedAt DateTime @updatedAt
 }
 
+model LeaveType {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  description   String?        @db.Text
+  maxDays       Int? // Maximum days allowed per year, null for unlimited
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  leaveRequests LeaveRequest[]
+}
+
 model LeaveRequest {
-  id        Int        @id @default(autoincrement())
-  userId    Int
-  user      User       @relation(fields: [userId], references: [id])
-  startDate DateTime
-  endDate   DateTime
-  reason    String     @db.Text
-  status    String     @default("PENDING")
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  approvals Approval[]
+  id          Int        @id @default(autoincrement())
+  userId      Int
+  user        User       @relation(fields: [userId], references: [id])
+  leaveTypeId Int
+  leaveType   LeaveType  @relation(fields: [leaveTypeId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  reason      String     @db.Text
+  status      String     @default("PENDING")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  approvals   Approval[]
 }
 
 model Approval {

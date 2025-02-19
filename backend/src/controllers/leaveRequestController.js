@@ -2,18 +2,92 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Validate leave request input
+const validateLeaveRequest = (startDate, endDate, reason) => {
+    const errors = [];
+
+    // Check if dates are valid
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+
+    if (isNaN(start.getTime())) {
+        errors.push('Tanggal mulai tidak valid');
+    }
+
+    if (isNaN(end.getTime())) {
+        errors.push('Tanggal selesai tidak valid');
+    }
+
+    if (start > end) {
+        errors.push('Tanggal mulai tidak boleh lebih besar dari tanggal selesai');
+    }
+
+    if (start < now && start.toDateString() !== now.toDateString()) {
+        errors.push('Tanggal mulai tidak boleh kurang dari hari ini');
+    }
+
+    // Check reason
+    if (!reason || reason.trim().length < 10) {
+        errors.push('Alasan harus diisi minimal 10 karakter');
+    }
+
+    if (reason && reason.trim().length > 500) {
+        errors.push('Alasan tidak boleh lebih dari 500 karakter');
+    }
+
+    return errors;
+};
+
 // Create a new leave request
 export const createLeaveRequest = async (req, res) => {
     try {
         const { startDate, endDate, reason } = req.body;
         const userId = req.user.id;
 
+        // Validate input
+        const validationErrors = validateLeaveRequest(startDate, endDate, reason);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                message: 'Validasi gagal',
+                errors: validationErrors,
+            });
+        }
+
+        // Check for overlapping leave requests
+        const overlappingRequests = await prisma.leaveRequest.findMany({
+            where: {
+                userId,
+                status: 'PENDING',
+                OR: [
+                    {
+                        AND: [
+                            { startDate: { lte: new Date(startDate) } },
+                            { endDate: { gte: new Date(startDate) } },
+                        ],
+                    },
+                    {
+                        AND: [
+                            { startDate: { lte: new Date(endDate) } },
+                            { endDate: { gte: new Date(endDate) } },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        if (overlappingRequests.length > 0) {
+            return res.status(400).json({
+                message: 'Terdapat pengajuan cuti yang bertabrakan dengan tanggal yang dipilih',
+            });
+        }
+
         const leaveRequest = await prisma.leaveRequest.create({
             data: {
                 userId,
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
-                reason,
+                reason: reason.trim(),
                 status: 'PENDING',
             },
             include: {
@@ -110,6 +184,10 @@ export const getLeaveRequest = async (req, res) => {
         const { id } = req.params;
         const userId = req.user.id;
 
+        if (isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'ID pengajuan cuti tidak valid' });
+        }
+
         const leaveRequest = await prisma.leaveRequest.findFirst({
             where: {
                 id: parseInt(id),
@@ -147,6 +225,19 @@ export const updateLeaveRequest = async (req, res) => {
         const { startDate, endDate, reason } = req.body;
         const userId = req.user.id;
 
+        if (isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'ID pengajuan cuti tidak valid' });
+        }
+
+        // Validate input
+        const validationErrors = validateLeaveRequest(startDate, endDate, reason);
+        if (validationErrors.length > 0) {
+            return res.status(400).json({
+                message: 'Validasi gagal',
+                errors: validationErrors,
+            });
+        }
+
         const leaveRequest = await prisma.leaveRequest.findFirst({
             where: {
                 id: parseInt(id),
@@ -162,6 +253,35 @@ export const updateLeaveRequest = async (req, res) => {
             return res.status(400).json({ message: 'Pengajuan cuti yang sudah diproses tidak dapat diubah' });
         }
 
+        // Check for overlapping leave requests
+        const overlappingRequests = await prisma.leaveRequest.findMany({
+            where: {
+                userId,
+                status: 'PENDING',
+                id: { not: parseInt(id) },
+                OR: [
+                    {
+                        AND: [
+                            { startDate: { lte: new Date(startDate) } },
+                            { endDate: { gte: new Date(startDate) } },
+                        ],
+                    },
+                    {
+                        AND: [
+                            { startDate: { lte: new Date(endDate) } },
+                            { endDate: { gte: new Date(endDate) } },
+                        ],
+                    },
+                ],
+            },
+        });
+
+        if (overlappingRequests.length > 0) {
+            return res.status(400).json({
+                message: 'Terdapat pengajuan cuti yang bertabrakan dengan tanggal yang dipilih',
+            });
+        }
+
         const updatedLeaveRequest = await prisma.leaveRequest.update({
             where: {
                 id: parseInt(id),
@@ -169,7 +289,7 @@ export const updateLeaveRequest = async (req, res) => {
             data: {
                 startDate: new Date(startDate),
                 endDate: new Date(endDate),
-                reason,
+                reason: reason.trim(),
             },
             include: {
                 approvals: {
@@ -197,6 +317,10 @@ export const deleteLeaveRequest = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
+
+        if (isNaN(parseInt(id))) {
+            return res.status(400).json({ message: 'ID pengajuan cuti tidak valid' });
+        }
 
         const leaveRequest = await prisma.leaveRequest.findFirst({
             where: {

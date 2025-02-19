@@ -1,9 +1,9 @@
-const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+import jwt from 'jsonwebtoken';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-exports.authenticateToken = async (req, res, next) => {
+export const authenticateToken = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];
@@ -39,7 +39,7 @@ exports.authenticateToken = async (req, res, next) => {
 };
 
 // Middleware to check if user has required role
-exports.hasRole = (roles) => {
+export const hasRole = (roles) => {
     return (req, res, next) => {
         if (!req.user || !req.user.role) {
             return res.status(401).json({ message: 'Unauthorized' });
