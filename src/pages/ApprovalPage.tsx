@@ -5,7 +5,7 @@ import { id } from 'date-fns/locale';
 import DashboardLayout from '../components/DashboardLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { AxiosError } from 'axios';
-import { canApprove, getApprovalStatus, RoleType } from '../types/approval';
+import { canApprove, getApprovalStatus, RoleType, APPROVAL_FLOW } from '../types/approval';
 
 export default function ApprovalPage() {
     const [approvals, setApprovals] = useState<Approval[]>([]);
@@ -99,10 +99,12 @@ export default function ApprovalPage() {
                     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                         <ul className="divide-y divide-gray-200">
                             {approvals.map((approval) => {
-                                const approvalStatuses = getApprovalStatus(approval.leaveRequest.approvals);
                                 const canUserApprove = user?.role.name && canApprove(
                                     user.role.name as RoleType,
-                                    approval.leaveRequest.approvals
+                                    approval.leaveRequest.approvals.map(a => ({
+                                        ...a,
+                                        approvalOrder: APPROVAL_FLOW.find(flow => flow.role === a.approver.role.name)?.order || 0
+                                    }))
                                 );
 
                                 return (
@@ -138,7 +140,18 @@ export default function ApprovalPage() {
                                             <div className="bg-gray-50 p-4 rounded-lg">
                                                 <h4 className="text-sm font-medium text-gray-700 mb-2">Status Persetujuan</h4>
                                                 <div className="space-y-2">
-                                                    {approvalStatuses.map((status) => (
+                                                    {getApprovalStatus(
+                                                        approval.leaveRequest.approvals.map(a => ({
+                                                            status: a.status,
+                                                            approvalOrder: APPROVAL_FLOW.find(flow => flow.role === a.approver.role.name)?.order || 0,
+                                                            approver: {
+                                                                role: {
+                                                                    name: a.approver.role.name
+                                                                }
+                                                            }
+                                                        })),
+                                                        user?.role.name as RoleType
+                                                    ).map((status) => (
                                                         <div key={status.role} className="flex items-center justify-between">
                                                             <span className="text-sm text-gray-600">{status.role}</span>
                                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium

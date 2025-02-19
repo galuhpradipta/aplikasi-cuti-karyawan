@@ -156,9 +156,9 @@ export const createLeaveRequest = async (req, res) => {
 
         // Define approval flow based on user's role
         if (user.role.name === 'Karyawan') {
-            approvalOrder = ['Kepala Divisi', 'HRD'];
+            approvalOrder = ['Kepala Divisi', 'HRD', 'Direktur'];
         } else if (user.role.name === 'Kepala Divisi') {
-            approvalOrder = ['HRD'];
+            approvalOrder = ['HRD', 'Direktur'];
         }
 
         // Create approval records

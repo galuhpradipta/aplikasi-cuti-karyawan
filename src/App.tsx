@@ -8,6 +8,9 @@ import LeaveRequestPage from './pages/LeaveRequestPage';
 import ApprovalPage from './pages/ApprovalPage';
 import { APPROVAL_FLOW } from './types/approval';
 
+// Get allowed roles for approvals
+const APPROVER_ROLES = APPROVAL_FLOW.map(flow => flow.role);
+
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
   const { user, loading } = useAuth();
@@ -63,7 +66,7 @@ function AppRoutes() {
       <Route
         path="/approvals"
         element={
-          <ProtectedRoute allowedRoles={APPROVAL_FLOW}>
+          <ProtectedRoute allowedRoles={APPROVER_ROLES}>
             <ApprovalPage />
           </ProtectedRoute>
         }

@@ -1,8 +1,12 @@
-export type RoleType = "Karyawan" | "Kepala Divisi" | "HRD" | "Direktur";
+export type RoleType = "Kepala Divisi" | "HRD" | "Direktur" | "Karyawan";
 
 export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
 
-export const APPROVAL_FLOW: RoleType[] = ["Kepala Divisi", "HRD", "Direktur"];
+export const APPROVAL_FLOW: { role: RoleType; order: number }[] = [
+  { role: "Kepala Divisi", order: 1 },
+  { role: "HRD", order: 2 },
+  { role: "Direktur", order: 3 },
+];
 
 export interface ApprovalFlow {
   role: RoleType;
@@ -29,55 +33,56 @@ export const LEAVE_APPROVAL_FLOW: ApprovalFlow[] = [
 ];
 
 export function getNextApprover(currentApprover: RoleType): RoleType | null {
-  const currentIndex = APPROVAL_FLOW.indexOf(currentApprover);
+  const currentIndex = APPROVAL_FLOW.findIndex(
+    (flow) => flow.role === currentApprover
+  );
   if (currentIndex === -1 || currentIndex === APPROVAL_FLOW.length - 1) {
     return null;
   }
-  return APPROVAL_FLOW[currentIndex + 1];
+  return APPROVAL_FLOW[currentIndex + 1].role;
 }
 
 export function canApprove(
   userRole: RoleType,
   currentApprovals: Array<{
     status: ApprovalStatus;
+    approvalOrder: number;
     approver: { role: { name: RoleType } };
   }>
 ): boolean {
-  // Get the order of the user's role in the approval flow
-  const userOrder = LEAVE_APPROVAL_FLOW.find(
-    (flow) => flow.role === userRole
-  )?.order;
-  if (!userOrder) return false;
+  const roleConfig = APPROVAL_FLOW.find((flow) => flow.role === userRole);
+  if (!roleConfig) return false;
 
-  // If it's the first approver (Kepala Divisi), they can always approve if status is PENDING
-  if (userOrder === 1) return true;
+  const userOrder = roleConfig.order;
 
-  // For subsequent approvers, check if previous approvers have approved
-  const previousApprovers = LEAVE_APPROVAL_FLOW.filter(
-    (flow) => flow.order < userOrder
-  ).map((flow) => flow.role);
+  // For each approval, check if all previous orders are approved
+  const previousApprovals = currentApprovals.filter(
+    (approval) => approval.approvalOrder < userOrder
+  );
 
-  return previousApprovers.every((role) => {
-    const approval = currentApprovals.find(
-      (a) => a.approver.role.name === role
-    );
-    return approval?.status === "APPROVED";
-  });
+  return previousApprovals.every((approval) => approval.status === "APPROVED");
 }
 
 export function getApprovalStatus(
   approvals: Array<{
     status: ApprovalStatus;
+    approvalOrder: number;
     approver: { role: { name: RoleType } };
-  }>
+  }>,
+  userRole: RoleType
 ) {
-  return LEAVE_APPROVAL_FLOW.map((flow) => {
+  const roleConfig = APPROVAL_FLOW.find((flow) => flow.role === userRole);
+  if (!roleConfig) return [];
+
+  const userOrder = roleConfig.order;
+
+  // Only return approvals up to the user's order
+  return APPROVAL_FLOW.filter((flow) => flow.order <= userOrder).map((flow) => {
     const approval = approvals.find((a) => a.approver.role.name === flow.role);
     return {
       role: flow.role,
       status: approval?.status || "PENDING",
       order: flow.order,
-      required: flow.required,
     };
   });
 }
