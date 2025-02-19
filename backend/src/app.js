@@ -5,6 +5,7 @@ import leaveRequestRoutes from './routes/leaveRequestRoutes.js';
 import approvalRoutes from './routes/approvalRoutes.js';
 import leaveTypeRoutes from './routes/leaveTypeRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/api/leave-requests', leaveRequestRoutes);
 app.use('/api/approvals', approvalRoutes);
 app.use('/api/leave-types', leaveTypeRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

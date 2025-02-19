@@ -7,7 +7,7 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/datepicker.css";
 import { APPROVAL_FLOW } from '../types/approval';
-import { FiPlus } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
 const CustomDatePickerInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>((props, ref) => (
@@ -224,14 +224,22 @@ const LeaveRequestPage: React.FC = () => {
                                                 request.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}
                                         </span>
                                     </div>
-                                    <div className="flex justify-end space-x-2">
+                                    <div className="flex justify-end space-x-3">
                                         {request.status === 'PENDING' && (
                                             <>
-                                                <button className="text-blue-600 hover:text-blue-900 text-sm font-medium">
-                                                    Edit
+                                                <button
+                                                    onClick={() => handleEdit(request)}
+                                                    className="p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                                                    title="Edit pengajuan"
+                                                >
+                                                    <FiEdit2 className="h-4 w-4" />
                                                 </button>
-                                                <button className="text-red-600 hover:text-red-900 text-sm font-medium">
-                                                    Hapus
+                                                <button
+                                                    onClick={() => handleDelete(request.id)}
+                                                    className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full transition-colors duration-200"
+                                                    title="Hapus pengajuan"
+                                                >
+                                                    <FiTrash2 className="h-4 w-4" />
                                                 </button>
                                             </>
                                         )}

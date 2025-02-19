@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import LeaveRequestPage from './pages/LeaveRequestPage';
 import ApprovalPage from './pages/ApprovalPage';
 import UserManagementPage from './pages/UserManagementPage';
+import ReportsPage from './pages/ReportsPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { useAuth } from './contexts/AuthContext';
 
@@ -68,6 +69,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute allowedRoles={['HRD']}>
                 <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute allowedRoles={['HRD', 'Direktur']}>
+                <ReportsPage />
               </ProtectedRoute>
             }
           />
