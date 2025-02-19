@@ -4,7 +4,7 @@ import {
     Snackbar,
     Alert
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon } from '@mui/icons-material';
+import { FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
 import userService, { User, UserUpdateData } from '../services/userService';
 import EditUserDialog from '../components/EditUserDialog';
 import DashboardLayout from '../components/DashboardLayout';
@@ -118,7 +118,7 @@ const UserManagementPage: React.FC = () => {
                             <div className="flex items-center space-x-4">
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <SearchIcon className="h-5 w-5 text-gray-400" />
+                                        <FiSearch className="h-5 w-5 text-gray-400" />
                                     </div>
                                     <input
                                         type="text"
@@ -178,13 +178,13 @@ const UserManagementPage: React.FC = () => {
                                                         onClick={() => handleEditClick(user)}
                                                         className="text-blue-600 hover:text-blue-900"
                                                     >
-                                                        <EditIcon className="h-5 w-5" />
+                                                        <FiEdit2 className="h-5 w-5" />
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteClick(user)}
                                                         className="text-red-600 hover:text-red-900"
                                                     >
-                                                        <DeleteIcon className="h-5 w-5" />
+                                                        <FiTrash2 className="h-5 w-5" />
                                                     </button>
                                                 </div>
                                             </td>
@@ -253,15 +253,15 @@ const UserManagementPage: React.FC = () => {
                     <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                         <div className="sm:flex sm:items-start">
                             <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                                <DeleteIcon className="h-6 w-6 text-red-600" />
+                                <FiTrash2 className="h-6 w-6 text-red-600" />
                             </div>
                             <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                                 <h3 className="text-lg leading-6 font-medium text-gray-900">
-                                    Delete User
+                                    Hapus Pengguna
                                 </h3>
                                 <div className="mt-2">
                                     <p className="text-sm text-gray-500">
-                                        Are you sure you want to delete {selectedUser?.name}? This action cannot be undone.
+                                        Apakah Anda yakin ingin menghapus {selectedUser?.name}? Tindakan ini tidak dapat dibatalkan.
                                     </p>
                                 </div>
                             </div>
@@ -273,14 +273,14 @@ const UserManagementPage: React.FC = () => {
                             onClick={handleDeleteConfirm}
                             className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                         >
-                            Delete
+                            Hapus
                         </button>
                         <button
                             type="button"
                             onClick={() => setIsDeleteDialogOpen(false)}
                             className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
                         >
-                            Cancel
+                            Batal
                         </button>
                     </div>
                 </Dialog>
