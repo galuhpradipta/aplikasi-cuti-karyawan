@@ -28,7 +28,6 @@ export default function RegisterPage() {
             try {
                 setRolesLoading(true);
                 const response = await api.get<Role[]>('/auth/roles');
-                console.log('Roles response:', response.data);
                 setRoles(response.data);
                 if (response.data.length > 0) {
                     setFormData(prev => ({ ...prev, roleId: response.data[0].id }));

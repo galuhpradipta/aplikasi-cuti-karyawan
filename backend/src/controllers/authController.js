@@ -12,7 +12,6 @@ export const getRoles = async (req, res) => {
                 id: 'asc'
             }
         });
-        console.log('Fetched roles:', roles); // Add logging
         res.json(roles);
     } catch (error) {
         console.error('Error fetching roles:', error);

@@ -5,9 +5,10 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LeaveRequestPage from './pages/LeaveRequestPage';
+import ApprovalPage from './pages/ApprovalPage';
 
 // Protected Route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -20,6 +21,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role.name)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;
@@ -51,6 +56,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <LeaveRequestPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/approvals"
+        element={
+          <ProtectedRoute allowedRoles={['Kepala Divisi']}>
+            <ApprovalPage />
           </ProtectedRoute>
         }
       />

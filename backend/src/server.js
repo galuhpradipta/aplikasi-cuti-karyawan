@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
 import leaveRequestRoutes from './routes/leaveRequestRoutes.js';
 import leaveTypeRoutes from './routes/leaveTypeRoutes.js';
+import approvalRoutes from './routes/approvalRoutes.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
 app.use('/api/leave-types', leaveTypeRoutes);
+app.use('/api/approvals', approvalRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {
