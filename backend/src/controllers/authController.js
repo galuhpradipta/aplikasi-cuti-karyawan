@@ -23,15 +23,24 @@ export const getRoles = async (req, res) => {
 // Register new user
 export const register = async (req, res) => {
     try {
-        const { email, password, name, roleId } = req.body;
+        const { email, password, name, roleId, nik } = req.body;
 
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
+        // Check if user already exists (email)
+        const existingUserByEmail = await prisma.user.findUnique({
             where: { email },
         });
 
-        if (existingUser) {
-            return res.status(400).json({ message: 'User already exists' });
+        if (existingUserByEmail) {
+            return res.status(400).json({ message: 'User with this email already exists' });
+        }
+
+        // Check if user already exists (NIK)
+        const existingUserByNIK = await prisma.user.findUnique({
+            where: { nik },
+        });
+
+        if (existingUserByNIK) {
+            return res.status(400).json({ message: 'User with this NIK already exists' });
         }
 
         // Hash password
@@ -43,6 +52,7 @@ export const register = async (req, res) => {
                 email,
                 password: hashedPassword,
                 name,
+                nik,
                 roleId,
             },
             include: {

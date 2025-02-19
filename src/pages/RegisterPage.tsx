@@ -16,6 +16,7 @@ export default function RegisterPage() {
         email: '',
         password: '',
         name: '',
+        nik: '',
         roleId: 1,
     });
     const [error, setError] = useState<string>('');
@@ -98,6 +99,21 @@ export default function RegisterPage() {
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                                 placeholder="Nama Lengkap"
                                 value={formData.name}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="nik" className="sr-only">
+                                Nomor Induk Karyawan
+                            </label>
+                            <input
+                                id="nik"
+                                name="nik"
+                                type="text"
+                                required
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                placeholder="Nomor Induk Karyawan"
+                                value={formData.nik}
                                 onChange={handleChange}
                             />
                         </div>
