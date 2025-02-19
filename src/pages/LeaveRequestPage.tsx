@@ -6,6 +6,7 @@ import DashboardLayout from '../components/DashboardLayout';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import "../styles/datepicker.css";
+import { APPROVAL_FLOW } from '../types/approval';
 
 const CustomDatePickerInput = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>((props, ref) => (
     <div className="relative">
@@ -149,6 +150,32 @@ const LeaveRequestPage: React.FC = () => {
         }
     };
 
+    const getApprovalStatusDetails = (request: LeaveRequest) => {
+        return APPROVAL_FLOW.map(flow => {
+            const approval = request.approvals?.find(a => a.approver.role.name === flow.role);
+            return {
+                role: flow.role,
+                status: approval?.status || 'PENDING',
+                approver: approval?.approver?.name || '-',
+                approvedAt: approval?.approvedAt ? dayjs(approval.approvedAt).format('DD/MM/YYYY HH:mm') : '-',
+                remarks: approval?.remarks || '-'
+            };
+        });
+    };
+
+    const getStatusBadgeColor = (status: string): string => {
+        switch (status) {
+            case 'APPROVED':
+                return 'bg-green-100 text-green-800';
+            case 'REJECTED':
+                return 'bg-red-100 text-red-800';
+            case 'PENDING':
+                return 'bg-yellow-100 text-yellow-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
     const today = new Date();
 
     return (
@@ -198,46 +225,74 @@ const LeaveRequestPage: React.FC = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {leaveRequests.map((request) => (
-                            <tr key={request.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {request.leaveType.name}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {dayjs(request.startDate).format('DD/MM/YYYY')}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {dayjs(request.endDate).format('DD/MM/YYYY')}
-                                </td>
-                                <td className="px-6 py-4 text-sm text-gray-900">
-                                    {request.reason}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
-                                        {request.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {dayjs(request.createdAt).format('DD/MM/YYYY HH:mm')}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {request.status === 'PENDING' && (
-                                        <div className="flex space-x-2">
-                                            <button
-                                                onClick={() => handleEdit(request)}
-                                                className="text-blue-600 hover:text-blue-900"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(request.id)}
-                                                className="text-red-600 hover:text-red-900"
-                                            >
-                                                Hapus
-                                            </button>
+                            <React.Fragment key={request.id}>
+                                <tr>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {request.leaveType.name}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {dayjs(request.startDate).format('DD/MM/YYYY')}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {dayjs(request.endDate).format('DD/MM/YYYY')}
+                                    </td>
+                                    <td className="px-6 py-4 text-sm text-gray-900">
+                                        {request.reason}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(request.status)}`}>
+                                            {request.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {dayjs(request.createdAt).format('DD/MM/YYYY HH:mm')}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {request.status === 'PENDING' && (
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={() => handleEdit(request)}
+                                                    className="text-blue-600 hover:text-blue-900"
+                                                >
+                                                    Edit
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(request.id)}
+                                                    className="text-red-600 hover:text-red-900"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colSpan={7} className="px-6 py-4 bg-gray-50">
+                                        <div className="text-sm">
+                                            <h4 className="font-medium text-gray-900 mb-2">Status Persetujuan:</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                {getApprovalStatusDetails(request).map((approval, index) => (
+                                                    <div key={index} className="flex flex-col space-y-1 bg-white p-3 rounded-lg shadow-sm">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="font-medium text-gray-700">{approval.role}</span>
+                                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(approval.status)}`}>
+                                                                {approval.status}
+                                                            </span>
+                                                        </div>
+                                                        <div className="text-xs text-gray-500">
+                                                            <p>Approver: {approval.approver}</p>
+                                                            <p>Waktu: {approval.approvedAt}</p>
+                                                            {approval.remarks !== '-' && (
+                                                                <p>Catatan: {approval.remarks}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
-                                    )}
-                                </td>
-                            </tr>
+                                    </td>
+                                </tr>
+                            </React.Fragment>
                         ))}
                     </tbody>
                 </table>
