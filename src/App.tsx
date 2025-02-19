@@ -1,18 +1,16 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LeaveRequestPage from './pages/LeaveRequestPage';
 import ApprovalPage from './pages/ApprovalPage';
-import { APPROVAL_FLOW } from './types/approval';
-
-// Get allowed roles for approvals
-const APPROVER_ROLES = APPROVAL_FLOW.map(flow => flow.role);
+import UserManagementPage from './pages/UserManagementPage';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 
 // Protected Route component
-const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
+const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: string[] }> = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -34,56 +32,50 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode,
   return <>{children}</>;
 };
 
-function AppRoutes() {
-  const { user } = useAuth();
-
-  return (
-    <Routes>
-      <Route
-        path="/login"
-        element={user ? <Navigate to="/dashboard" replace /> : <LoginPage />}
-      />
-      <Route
-        path="/register"
-        element={user ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/leave-requests"
-        element={
-          <ProtectedRoute>
-            <LeaveRequestPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/approvals"
-        element={
-          <ProtectedRoute allowedRoles={APPROVER_ROLES}>
-            <ApprovalPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  );
-}
-
-function App() {
+const App: React.FC = () => {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leave-requests"
+            element={
+              <ProtectedRoute>
+                <LeaveRequestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/approvals"
+            element={
+              <ProtectedRoute allowedRoles={['Kepala Divisi', 'HRD', 'Direktur']}>
+                <ApprovalPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/user-management"
+            element={
+              <ProtectedRoute allowedRoles={['HRD']}>
+                <UserManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
       </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;

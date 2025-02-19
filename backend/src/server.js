@@ -6,10 +6,11 @@ import authRoutes from './routes/authRoutes.js';
 import leaveRequestRoutes from './routes/leaveRequestRoutes.js';
 import leaveTypeRoutes from './routes/leaveTypeRoutes.js';
 import approvalRoutes from './routes/approvalRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import app from './app.js';
 
 dotenv.config();
 
-const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.APP_PORT || 3000;
 
@@ -22,6 +23,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/leave-requests', leaveRequestRoutes);
 app.use('/api/leave-types', leaveTypeRoutes);
 app.use('/api/approvals', approvalRoutes);
+app.use('/api/users', userRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

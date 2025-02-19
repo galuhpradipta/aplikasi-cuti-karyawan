@@ -1,6 +1,5 @@
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { authService } from '../services/api';
 
 interface User {
     id: number;
@@ -16,6 +15,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     loading: boolean;
+    isAuthenticated: boolean;
     login: (token: string, userData: User) => void;
     logout: () => void;
 }
@@ -59,7 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{
+            user,
+            loading,
+            isAuthenticated: !!user,
+            login,
+            logout
+        }}>
             {children}
         </AuthContext.Provider>
     );
