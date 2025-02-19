@@ -58,13 +58,15 @@ export const approvalService = {
   },
 
   async handleApproval(
-    id: number,
+    approvalId: number,
     status: "APPROVED" | "REJECTED",
+    leaveRequestId: number,
     remarks?: string
   ): Promise<Approval> {
-    const { data } = await api.put<Approval>(`/approvals/${id}`, {
+    const { data } = await api.put<Approval>(`/approvals/${approvalId}`, {
       status,
       remarks,
+      leaveRequestId,
     });
     return data;
   },

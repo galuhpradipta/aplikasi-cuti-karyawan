@@ -32,14 +32,18 @@ export default function ApprovalPage() {
         fetchApprovals();
     }, []);
 
-    const handleApproval = async (id: number, status: 'APPROVED' | 'REJECTED') => {
+    const handleApproval = async (approvalId: number, status: 'APPROVED' | 'REJECTED') => {
         try {
-            setProcessingId(id);
-            await approvalService.handleApproval(id, status, remarks[id]);
+            setProcessingId(approvalId);
+            const approval = approvals.find(a => a.id === approvalId);
+            if (!approval) {
+                throw new Error('Approval not found');
+            }
+            await approvalService.handleApproval(approvalId, status, approval.leaveRequestId, remarks[approvalId]);
             await fetchApprovals();
             setRemarks(prev => {
                 const newRemarks = { ...prev };
-                delete newRemarks[id];
+                delete newRemarks[approvalId];
                 return newRemarks;
             });
         } catch (error) {

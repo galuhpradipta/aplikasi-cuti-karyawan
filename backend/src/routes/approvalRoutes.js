@@ -11,6 +11,6 @@ router.use(authenticateToken);
 router.get('/pending', hasRole(['Kepala Divisi', 'HRD', 'Direktur']), getPendingApprovals);
 
 // Handle approval decision
-router.put('/:id', hasRole(['Kepala Divisi', 'HRD', 'Direktur']), handleApproval);
+router.put('/:approvalId', hasRole(['Kepala Divisi', 'HRD', 'Direktur']), handleApproval);
 
 export default router; 

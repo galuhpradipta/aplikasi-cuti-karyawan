@@ -86,8 +86,8 @@ export const getPendingApprovals = async (req, res) => {
 // Handle approval decision (approve/reject)
 export const handleApproval = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { status, remarks } = req.body;
+        const { approvalId } = req.params;
+        const { status, remarks, leaveRequestId } = req.body;
         const userId = req.user.id;
         const userRole = req.user.role.name;
 
@@ -102,7 +102,7 @@ export const handleApproval = async (req, res) => {
         // Get the approval
         const approval = await prisma.approval.findFirst({
             where: {
-                id: parseInt(id),
+                id: parseInt(approvalId),
                 approverId: userId,
                 status: 'PENDING',
             },
@@ -130,6 +130,11 @@ export const handleApproval = async (req, res) => {
             return res.status(404).json({ message: 'Approval not found or already processed' });
         }
 
+        // Verify the leave request ID matches
+        if (approval.leaveRequestId !== parseInt(leaveRequestId)) {
+            return res.status(400).json({ message: 'Leave request ID mismatch' });
+        }
+
         // Get current approver's order
         const approverOrder = APPROVAL_FLOW.indexOf(userRole) + 1;
 
@@ -148,7 +153,9 @@ export const handleApproval = async (req, res) => {
         const result = await prisma.$transaction(async (prisma) => {
             // Update the approval
             const updatedApproval = await prisma.approval.update({
-                where: { id: parseInt(id) },
+                where: {
+                    id: parseInt(approvalId)
+                },
                 data: {
                     status,
                     remarks,
