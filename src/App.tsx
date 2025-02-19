@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import LeaveRequestPage from './pages/LeaveRequestPage';
 import ApprovalPage from './pages/ApprovalPage';
+import { APPROVAL_FLOW } from './types/approval';
 
 // Protected Route component
 const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles?: string[] }) => {
@@ -62,7 +63,7 @@ function AppRoutes() {
       <Route
         path="/approvals"
         element={
-          <ProtectedRoute allowedRoles={['Kepala Divisi']}>
+          <ProtectedRoute allowedRoles={APPROVAL_FLOW}>
             <ApprovalPage />
           </ProtectedRoute>
         }

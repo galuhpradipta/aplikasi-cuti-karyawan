@@ -1,21 +1,42 @@
 import api from "./api";
+import { ApprovalStatus, RoleType } from "../types/approval";
 
 export interface Approval {
   id: number;
   leaveRequestId: number;
   approverId: number;
   approvalOrder: number;
-  status: string;
+  status: ApprovalStatus;
   remarks?: string;
   approvedAt?: string;
   createdAt: string;
   updatedAt: string;
+  approver: {
+    id: number;
+    name: string;
+    role: {
+      id: number;
+      name: RoleType;
+    };
+  };
   leaveRequest: {
     id: number;
     startDate: string;
     endDate: string;
     reason: string;
     status: string;
+    approvals: Array<{
+      id: number;
+      status: ApprovalStatus;
+      approver: {
+        id: number;
+        name: string;
+        role: {
+          id: number;
+          name: RoleType;
+        };
+      };
+    }>;
     user: {
       id: number;
       name: string;

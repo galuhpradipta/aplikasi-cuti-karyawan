@@ -8,9 +8,9 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Get pending approvals for the current user
-router.get('/pending', hasRole(['Kepala Divisi']), getPendingApprovals);
+router.get('/pending', hasRole(['Kepala Divisi', 'HRD', 'Direktur']), getPendingApprovals);
 
 // Handle approval decision
-router.put('/:id', hasRole(['Kepala Divisi']), handleApproval);
+router.put('/:id', hasRole(['Kepala Divisi', 'HRD', 'Direktur']), handleApproval);
 
 export default router; 

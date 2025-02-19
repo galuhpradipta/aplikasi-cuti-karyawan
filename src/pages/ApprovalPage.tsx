@@ -3,6 +3,9 @@ import { Approval, approvalService } from '../services/approvalService';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import DashboardLayout from '../components/DashboardLayout';
+import { useAuth } from '../contexts/AuthContext';
+import { AxiosError } from 'axios';
+import { canApprove, getApprovalStatus, RoleType } from '../types/approval';
 
 export default function ApprovalPage() {
     const [approvals, setApprovals] = useState<Approval[]>([]);
@@ -10,6 +13,7 @@ export default function ApprovalPage() {
     const [error, setError] = useState<string>('');
     const [processingId, setProcessingId] = useState<number | null>(null);
     const [remarks, setRemarks] = useState<{ [key: number]: string }>({});
+    const { user } = useAuth();
 
     const fetchApprovals = async () => {
         try {
@@ -32,9 +36,7 @@ export default function ApprovalPage() {
         try {
             setProcessingId(id);
             await approvalService.handleApproval(id, status, remarks[id]);
-            // Refresh the list after approval
             await fetchApprovals();
-            // Clear remarks for this approval
             setRemarks(prev => {
                 const newRemarks = { ...prev };
                 delete newRemarks[id];
@@ -42,7 +44,8 @@ export default function ApprovalPage() {
             });
         } catch (error) {
             console.error('Error processing approval:', error);
-            setError('Gagal memproses persetujuan');
+            const axiosError = error as AxiosError<{ message: string }>;
+            setError(axiosError.response?.data?.message || 'Gagal memproses persetujuan');
         } finally {
             setProcessingId(null);
         }
@@ -95,69 +98,99 @@ export default function ApprovalPage() {
                 ) : (
                     <div className="bg-white shadow overflow-hidden sm:rounded-lg">
                         <ul className="divide-y divide-gray-200">
-                            {approvals.map((approval) => (
-                                <li key={approval.id} className="p-6">
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between">
-                                            <div>
-                                                <h3 className="text-lg font-medium text-gray-900">
-                                                    {approval.leaveRequest.user.name}
-                                                </h3>
-                                                <p className="text-sm text-gray-500">NIK: {approval.leaveRequest.user.nik}</p>
-                                            </div>
-                                            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                                {approval.leaveRequest.leaveType.name}
-                                            </span>
-                                        </div>
+                            {approvals.map((approval) => {
+                                const approvalStatuses = getApprovalStatus(approval.leaveRequest.approvals);
+                                const canUserApprove = user?.role.name && canApprove(
+                                    user.role.name as RoleType,
+                                    approval.leaveRequest.approvals
+                                );
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div>
-                                                <p className="text-sm text-gray-500">Tanggal Cuti</p>
-                                                <p className="mt-1">
-                                                    {format(new Date(approval.leaveRequest.startDate), 'dd MMMM yyyy', { locale: id })}
-                                                    {' - '}
-                                                    {format(new Date(approval.leaveRequest.endDate), 'dd MMMM yyyy', { locale: id })}
-                                                </p>
+                                return (
+                                    <li key={approval.id} className="p-6">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between">
+                                                <div>
+                                                    <h3 className="text-lg font-medium text-gray-900">
+                                                        {approval.leaveRequest.user.name}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-500">NIK: {approval.leaveRequest.user.nik}</p>
+                                                </div>
+                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                    {approval.leaveRequest.leaveType.name}
+                                                </span>
                                             </div>
-                                            <div>
-                                                <p className="text-sm text-gray-500">Alasan</p>
-                                                <p className="mt-1">{approval.leaveRequest.reason}</p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Tanggal Cuti</p>
+                                                    <p className="mt-1">
+                                                        {format(new Date(approval.leaveRequest.startDate), 'dd MMMM yyyy', { locale: id })}
+                                                        {' - '}
+                                                        {format(new Date(approval.leaveRequest.endDate), 'dd MMMM yyyy', { locale: id })}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500">Alasan</p>
+                                                    <p className="mt-1">{approval.leaveRequest.reason}</p>
+                                                </div>
                                             </div>
-                                        </div>
 
-                                        <div>
-                                            <label htmlFor={`remarks-${approval.id}`} className="block text-sm font-medium text-gray-700">
-                                                Catatan (opsional)
-                                            </label>
-                                            <textarea
-                                                id={`remarks-${approval.id}`}
-                                                rows={2}
-                                                className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
-                                                placeholder="Tambahkan catatan..."
-                                                value={remarks[approval.id] || ''}
-                                                onChange={(e) => setRemarks(prev => ({ ...prev, [approval.id]: e.target.value }))}
-                                            />
-                                        </div>
+                                            <div className="bg-gray-50 p-4 rounded-lg">
+                                                <h4 className="text-sm font-medium text-gray-700 mb-2">Status Persetujuan</h4>
+                                                <div className="space-y-2">
+                                                    {approvalStatuses.map((status) => (
+                                                        <div key={status.role} className="flex items-center justify-between">
+                                                            <span className="text-sm text-gray-600">{status.role}</span>
+                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                                ${status.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                                                    status.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                                                        'bg-yellow-100 text-yellow-800'}`}>
+                                                                {status.status === 'APPROVED' ? 'Disetujui' :
+                                                                    status.status === 'REJECTED' ? 'Ditolak' : 'Menunggu'}
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
 
-                                        <div className="flex justify-end space-x-3">
-                                            <button
-                                                onClick={() => handleApproval(approval.id, 'REJECTED')}
-                                                disabled={processingId === approval.id}
-                                                className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                            >
-                                                Tolak
-                                            </button>
-                                            <button
-                                                onClick={() => handleApproval(approval.id, 'APPROVED')}
-                                                disabled={processingId === approval.id}
-                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                            >
-                                                Setujui
-                                            </button>
+                                            {canUserApprove && (
+                                                <>
+                                                    <div>
+                                                        <label htmlFor={`remarks-${approval.id}`} className="block text-sm font-medium text-gray-700">
+                                                            Catatan (opsional)
+                                                        </label>
+                                                        <textarea
+                                                            id={`remarks-${approval.id}`}
+                                                            rows={2}
+                                                            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                            placeholder="Tambahkan catatan..."
+                                                            value={remarks[approval.id] || ''}
+                                                            onChange={(e) => setRemarks(prev => ({ ...prev, [approval.id]: e.target.value }))}
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex justify-end space-x-3">
+                                                        <button
+                                                            onClick={() => handleApproval(approval.id, 'REJECTED')}
+                                                            disabled={processingId === approval.id}
+                                                            className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            Tolak
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleApproval(approval.id, 'APPROVED')}
+                                                            disabled={processingId === approval.id}
+                                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        >
+                                                            Setujui
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                    </div>
-                                </li>
-                            ))}
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </div>
                 )}

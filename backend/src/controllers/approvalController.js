@@ -2,20 +2,36 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+const APPROVAL_FLOW = ['Kepala Divisi', 'HRD', 'Direktur'];
+
 // Get pending approvals for the current user
 export const getPendingApprovals = async (req, res) => {
     try {
         const userId = req.user.id;
         const userRole = req.user.role.name;
 
-        if (userRole !== 'Kepala Divisi') {
-            return res.status(403).json({ message: 'Unauthorized: Only Kepala Divisi can access approvals' });
+        if (!APPROVAL_FLOW.includes(userRole)) {
+            return res.status(403).json({ message: 'Unauthorized: Only approvers can access approvals' });
         }
 
         const pendingApprovals = await prisma.approval.findMany({
             where: {
                 approverId: userId,
                 status: 'PENDING',
+                ...(userRole !== 'Kepala Divisi' ? {
+                    leaveRequest: {
+                        approvals: {
+                            some: {
+                                status: 'APPROVED',
+                                approver: {
+                                    role: {
+                                        name: APPROVAL_FLOW[APPROVAL_FLOW.indexOf(userRole) - 1]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } : {})
             },
             include: {
                 leaveRequest: {
@@ -29,6 +45,20 @@ export const getPendingApprovals = async (req, res) => {
                             }
                         },
                         leaveType: true,
+                        approvals: {
+                            include: {
+                                approver: {
+                                    select: {
+                                        name: true,
+                                        role: {
+                                            select: {
+                                                name: true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             },
@@ -52,8 +82,8 @@ export const handleApproval = async (req, res) => {
         const userId = req.user.id;
         const userRole = req.user.role.name;
 
-        if (userRole !== 'Kepala Divisi') {
-            return res.status(403).json({ message: 'Unauthorized: Only Kepala Divisi can handle approvals' });
+        if (!APPROVAL_FLOW.includes(userRole)) {
+            return res.status(403).json({ message: 'Unauthorized: Only approvers can handle approvals' });
         }
 
         if (!['APPROVED', 'REJECTED'].includes(status)) {
@@ -68,12 +98,38 @@ export const handleApproval = async (req, res) => {
                 status: 'PENDING',
             },
             include: {
-                leaveRequest: true,
+                leaveRequest: {
+                    include: {
+                        approvals: {
+                            include: {
+                                approver: {
+                                    include: {
+                                        role: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
             },
         });
 
         if (!approval) {
             return res.status(404).json({ message: 'Approval not found or already processed' });
+        }
+
+        // Check if previous approver has approved (except for Kepala Divisi)
+        if (userRole !== 'Kepala Divisi') {
+            const previousRole = APPROVAL_FLOW[APPROVAL_FLOW.indexOf(userRole) - 1];
+            const previousApproval = approval.leaveRequest.approvals.find(a =>
+                a.approver.role.name === previousRole
+            );
+
+            if (!previousApproval || previousApproval.status !== 'APPROVED') {
+                return res.status(400).json({
+                    message: `Cannot process ${userRole} approval before ${previousRole} approval`
+                });
+            }
         }
 
         // Start a transaction
@@ -102,15 +158,37 @@ export const handleApproval = async (req, res) => {
                     data: { status: 'REJECTED' },
                 });
             }
-            // If approved, check if this was the last required approval
+            // If approved, handle next approval and status
             else if (status === 'APPROVED') {
-                const allApprovals = await prisma.approval.findMany({
-                    where: { leaveRequestId: approval.leaveRequestId },
-                });
+                // Find the next role in the approval flow
+                const currentRoleIndex = APPROVAL_FLOW.indexOf(userRole);
+                const nextRole = currentRoleIndex < APPROVAL_FLOW.length - 1 ? APPROVAL_FLOW[currentRoleIndex + 1] : null;
 
-                const allApproved = allApprovals.every(a => a.status === 'APPROVED');
+                if (nextRole) {
+                    // Find the next approver with the next role
+                    const nextApprover = await prisma.user.findFirst({
+                        where: {
+                            role: {
+                                name: nextRole
+                            }
+                        }
+                    });
 
-                if (allApproved) {
+                    if (nextApprover) {
+                        // Create next approval
+                        await prisma.approval.create({
+                            data: {
+                                leaveRequestId: approval.leaveRequestId,
+                                approverId: nextApprover.id,
+                                approvalOrder: currentRoleIndex + 2, // +2 because order starts from 1
+                                status: 'PENDING'
+                            }
+                        });
+                    }
+                }
+
+                // Check if this was the last required approval
+                if (currentRoleIndex === APPROVAL_FLOW.length - 1) {
                     await prisma.leaveRequest.update({
                         where: { id: approval.leaveRequestId },
                         data: { status: 'APPROVED' },

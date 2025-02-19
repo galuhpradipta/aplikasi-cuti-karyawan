@@ -1,5 +1,5 @@
-import { ReactNode, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { ReactNode, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 interface DashboardLayoutProps {
@@ -68,11 +68,15 @@ const navItems: NavItem[] = [
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout } = useAuth();
-    const [currentPath, setCurrentPath] = useState(window.location.pathname);
+    const [currentPath, setCurrentPath] = useState(location.pathname);
+
+    useEffect(() => {
+        setCurrentPath(location.pathname);
+    }, [location.pathname]);
 
     const handleNavigation = (path: string) => {
-        setCurrentPath(path);
         navigate(path);
     };
 
