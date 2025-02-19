@@ -4,6 +4,22 @@ import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 
+// Get all roles
+export const getRoles = async (req, res) => {
+    try {
+        const roles = await prisma.role.findMany({
+            orderBy: {
+                id: 'asc'
+            }
+        });
+        console.log('Fetched roles:', roles); // Add logging
+        res.json(roles);
+    } catch (error) {
+        console.error('Error fetching roles:', error);
+        res.status(500).json({ message: 'Error fetching roles' });
+    }
+};
+
 // Register new user
 export const register = async (req, res) => {
     try {
