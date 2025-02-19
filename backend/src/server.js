@@ -3,6 +3,7 @@ import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes.js';
+import leaveRequestRoutes from './routes/leaveRequestRoutes.js';
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/leave-requests', leaveRequestRoutes);
 
 // Health check route
 app.get('/health', (req, res) => {

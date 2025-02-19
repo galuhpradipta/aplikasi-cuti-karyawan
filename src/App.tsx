@@ -4,6 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import LeaveRequestPage from './pages/LeaveRequestPage';
 
 // Protected Route component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -42,6 +43,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/leave-requests"
+        element={
+          <ProtectedRoute>
+            <LeaveRequestPage />
           </ProtectedRoute>
         }
       />
