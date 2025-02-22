@@ -159,6 +159,10 @@ export const createLeaveRequest = async (req, res) => {
             approvalOrder = ['Kepala Divisi', 'HRD', 'Direktur'];
         } else if (user.role.name === 'Kepala Divisi') {
             approvalOrder = ['HRD', 'Direktur'];
+        } else if (user.role.name === 'HRD') {
+            approvalOrder = ['Direktur'];
+        } else if (user.role.name === 'Direktur') {
+            approvalOrder = []; // No further approvals needed
         }
 
         // Create approval records
@@ -412,24 +416,33 @@ export const getStats = async (req, res) => {
     try {
         const userId = req.user.id;
 
-        // Get remaining leave days (assuming 12 days per year)
         const currentYear = new Date().getFullYear();
-        const startDate = new Date(currentYear, 0, 1); // January 1st of current year
-        const endDate = new Date(currentYear, 11, 31); // December 31st of current year
+        const startOfYear = new Date(currentYear, 0, 1);
+        const endOfYear = new Date(currentYear, 11, 31);
 
+        // Fetch leave configuration for current year (default to 12 if none found)
+        const config = await prisma.leaveConfiguration.findUnique({
+            where: { year: currentYear },
+        });
+        const defaultMaxDays = config?.maxLeaveDaysPerYear || 12;
+
+        // We'll only count usage for "Cuti Tahunan" in the "remainingDays" display.
         const approvedLeaves = await prisma.leaveRequest.findMany({
             where: {
                 userId,
                 status: 'APPROVED',
+                leaveType: {
+                    name: 'Cuti Tahunan',
+                },
                 startDate: {
-                    gte: startDate,
-                    lte: endDate
-                }
+                    gte: startOfYear,
+                    lte: endOfYear,
+                },
             },
             select: {
                 startDate: true,
-                endDate: true
-            }
+                endDate: true,
+            },
         });
 
         const usedDays = approvedLeaves.reduce((total, leave) => {
@@ -439,47 +452,50 @@ export const getStats = async (req, res) => {
             return total + duration;
         }, 0);
 
-        const remainingDays = 12 - usedDays; // Assuming 12 days per year
+        const remainingDays = Math.max(0, defaultMaxDays - usedDays);
 
-        // Get pending requests count
+        // For these next stats, we'll still consider all leave requests, regardless of type
         const pendingRequests = await prisma.leaveRequest.count({
             where: {
                 userId,
-                status: 'PENDING'
-            }
+                status: 'PENDING',
+                startDate: {
+                    gte: startOfYear,
+                    lte: endOfYear,
+                },
+            },
         });
 
-        // Get approved requests count for current year
         const approvedRequests = await prisma.leaveRequest.count({
             where: {
                 userId,
                 status: 'APPROVED',
                 startDate: {
-                    gte: startDate,
-                    lte: endDate
-                }
-            }
+                    gte: startOfYear,
+                    lte: endOfYear,
+                },
+            },
         });
 
-        // Get recent leave requests
+        // Get recent leave requests (any type)
         const recentRequests = await prisma.leaveRequest.findMany({
             where: {
-                userId
+                userId,
             },
             include: {
-                leaveType: true
+                leaveType: true,
             },
             orderBy: {
-                createdAt: 'desc'
+                createdAt: 'desc',
             },
-            take: 5
+            take: 5,
         });
 
         res.json({
             remainingDays,
             pendingRequests,
             approvedRequests,
-            recentRequests
+            recentRequests,
         });
     } catch (error) {
         console.error('Error fetching leave request stats:', error);
