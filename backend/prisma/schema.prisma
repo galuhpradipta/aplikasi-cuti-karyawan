@@ -21,6 +21,8 @@ model User {
   password      String
   role          Role           @relation(fields: [roleId], references: [id])
   roleId        Int
+  division      Division?      @relation(fields: [divisionId], references: [id])
+  divisionId    Int?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   leaveRequests LeaveRequest[]
@@ -28,6 +30,14 @@ model User {
 }
 
 model Role {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  users     User[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Division {
   id        Int      @id @default(autoincrement())
   name      String   @unique
   users     User[]

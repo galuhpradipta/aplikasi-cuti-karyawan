@@ -191,7 +191,10 @@ export const createLeaveRequest = async (
     // Create approval records based on the user's role
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { role: true },
+      include: {
+        role: true,
+        division: true,
+      },
     });
 
     if (!user) {
@@ -199,37 +202,115 @@ export const createLeaveRequest = async (
       return;
     }
 
-    const approvalOrder: string[] = [];
-
-    // Define approval flow based on user's role
-    if (user.role.name === "Karyawan") {
-      approvalOrder.push("Kepala Divisi", "HRD", "Direktur");
-    } else if (user.role.name === "Kepala Divisi") {
-      approvalOrder.push("HRD", "Direktur");
-    } else if (user.role.name === "HRD") {
-      approvalOrder.push("Direktur");
-    }
-
-    // Create approval records
-    for (let i = 0; i < approvalOrder.length; i++) {
-      const approverRole = approvalOrder[i];
-      const approver = await prisma.user.findFirst({
+    // Get division head (Kepala Divisi) for the user's division
+    if (user.division?.id) {
+      const divisionHead = await prisma.user.findFirst({
         where: {
-          role: {
-            name: approverRole,
+          division: {
+            id: user.division.id,
           },
+          role: {
+            name: "Kepala Divisi",
+          },
+        },
+        include: {
+          role: true,
         },
       });
 
-      if (approver) {
+      if (divisionHead) {
+        // Create division head approval
         await prisma.approval.create({
           data: {
             leaveRequestId: leaveRequest.id,
-            approverId: approver.id,
-            approvalOrder: i + 1,
+            approverId: divisionHead.id,
+            approvalOrder: 1,
             status: "PENDING",
           },
         });
+
+        // Create HRD approval
+        const hrdApprover = await prisma.user.findFirst({
+          where: {
+            role: {
+              name: "HRD",
+            },
+          },
+        });
+
+        if (hrdApprover) {
+          await prisma.approval.create({
+            data: {
+              leaveRequestId: leaveRequest.id,
+              approverId: hrdApprover.id,
+              approvalOrder: 2,
+              status: "PENDING",
+            },
+          });
+        }
+
+        // Create Direktur approval
+        const direkturApprover = await prisma.user.findFirst({
+          where: {
+            role: {
+              name: "Direktur",
+            },
+          },
+        });
+
+        if (direkturApprover) {
+          await prisma.approval.create({
+            data: {
+              leaveRequestId: leaveRequest.id,
+              approverId: direkturApprover.id,
+              approvalOrder: 3,
+              status: "PENDING",
+            },
+          });
+        }
+      }
+    } else {
+      // If user has no division or is not a regular employee, follow standard flow
+      if (user.role.name === "Karyawan" || user.role.name === "Kepala Divisi") {
+        // Create HRD approval
+        const hrdApprover = await prisma.user.findFirst({
+          where: {
+            role: {
+              name: "HRD",
+            },
+          },
+        });
+
+        if (hrdApprover) {
+          await prisma.approval.create({
+            data: {
+              leaveRequestId: leaveRequest.id,
+              approverId: hrdApprover.id,
+              approvalOrder: 1,
+              status: "PENDING",
+            },
+          });
+        }
+
+        // Create Direktur approval
+        const direkturApprover = await prisma.user.findFirst({
+          where: {
+            role: {
+              name: "Direktur",
+            },
+          },
+        });
+
+        if (direkturApprover) {
+          await prisma.approval.create({
+            data: {
+              leaveRequestId: leaveRequest.id,
+              approverId: direkturApprover.id,
+              approvalOrder: 2,
+              status: "PENDING",
+            },
+          });
+        }
       }
     }
 
