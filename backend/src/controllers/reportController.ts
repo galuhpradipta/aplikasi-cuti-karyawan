@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { prisma } from "../config/database";
 import { Prisma, LeaveRequest } from "@prisma/client";
+import { differenceInCalendarDays, startOfDay } from "date-fns";
 
 export const getLeaveRequestReports = async (req: Request, res: Response) => {
   try {
@@ -44,7 +45,16 @@ export const getLeaveRequestReports = async (req: Request, res: Response) => {
       },
     });
 
-    res.json(leaveRequests);
+    // Add total days calculation to each leave request
+    const leaveRequestsWithTotalDays = leaveRequests.map((request) => ({
+      ...request,
+      totalDays: differenceInCalendarDays(
+        startOfDay(new Date(request.endDate)),
+        startOfDay(new Date(request.startDate))
+      ),
+    }));
+
+    res.json(leaveRequestsWithTotalDays);
   } catch (error) {
     console.error("Error fetching leave request reports:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -104,12 +114,10 @@ export const exportLeaveRequestsCSV = async (req: Request, res: Response) => {
             leaveType: { name: string };
           }
         ) => {
-          const totalDays =
-            Math.ceil(
-              (new Date(request.endDate).getTime() -
-                new Date(request.startDate).getTime()) /
-                (1000 * 3600 * 24)
-            ) + 1;
+          const totalDays = differenceInCalendarDays(
+            startOfDay(new Date(request.endDate)),
+            startOfDay(new Date(request.startDate))
+          );
           return `${request.user.name},${request.user.email},${request.leaveType.name},${request.startDate},${request.endDate},${totalDays},${request.status}`;
         }
       )
