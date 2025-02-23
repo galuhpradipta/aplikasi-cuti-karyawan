@@ -27,6 +27,7 @@ export interface RegisterData extends LoginCredentials {
   name: string;
   nik: string;
   roleId: number;
+  divisionId?: number;
 }
 
 export interface AuthResponse {

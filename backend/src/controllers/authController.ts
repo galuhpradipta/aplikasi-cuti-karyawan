@@ -11,6 +11,7 @@ interface RegisterRequestBody {
   name: string;
   roleId: number;
   nik: string;
+  divisionId?: number;
 }
 
 interface LoginRequestBody {
@@ -39,13 +40,31 @@ export const getRoles = async (_req: Request, res: Response): Promise<void> => {
   }
 };
 
+// Get all divisions
+export const getDivisions = async (
+  _req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const divisions = await prisma.division.findMany({
+      orderBy: {
+        name: "asc",
+      },
+    });
+    res.json(divisions);
+  } catch (error) {
+    console.error("Error fetching divisions:", error);
+    res.status(500).json({ message: "Error fetching divisions" });
+  }
+};
+
 // Register new user
 export const register = async (
   req: Request<unknown, unknown, RegisterRequestBody>,
   res: Response
 ): Promise<void> => {
   try {
-    const { email, password, name, roleId, nik } = req.body;
+    const { email, password, name, roleId, nik, divisionId } = req.body;
 
     // Validate required fields
     if (!email || !password || !name || !roleId || !nik) {
@@ -92,6 +111,44 @@ export const register = async (
       return;
     }
 
+    // If role is Karyawan or Kepala Divisi, division is required
+    if (
+      (role.name === "Karyawan" || role.name === "Kepala Divisi") &&
+      !divisionId
+    ) {
+      res.status(400).json({ message: "Division is required for this role" });
+      return;
+    }
+
+    // If divisionId is provided, validate it exists
+    if (divisionId) {
+      const division = await prisma.division.findUnique({
+        where: { id: divisionId },
+      });
+
+      if (!division) {
+        res.status(400).json({ message: "Invalid division ID" });
+        return;
+      }
+
+      // If role is Kepala Divisi, check if division already has a head
+      if (role.name === "Kepala Divisi") {
+        const existingHead = await prisma.user.findFirst({
+          where: {
+            divisionId,
+            role: {
+              name: "Kepala Divisi",
+            },
+          },
+        });
+
+        if (existingHead) {
+          res.status(400).json({ message: "This division already has a head" });
+          return;
+        }
+      }
+    }
+
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -103,9 +160,11 @@ export const register = async (
         name,
         nik,
         roleId,
+        divisionId,
       },
       include: {
         role: true,
+        division: true,
       },
     });
 
