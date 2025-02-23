@@ -2,14 +2,16 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Backend for Employee Leave Management System",
-  "main": "src/server.js",
-  "type": "module",
+  "main": "dist/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
   },
   "keywords": [],
   "author": "",
@@ -26,7 +28,16 @@
     "jsonwebtoken": "^9.0.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.13.5",
     "nodemon": "^3.1.9",
-    "prisma": "^5.10.2"
+    "prisma": "^5.10.2",
+    "rimraf": "^5.0.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.3"
   }
 }
