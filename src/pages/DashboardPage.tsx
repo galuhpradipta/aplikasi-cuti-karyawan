@@ -181,7 +181,7 @@ const DashboardPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {stats.recentRequests.length > 0 ? (
+                                    {stats?.recentRequests && stats.recentRequests.length > 0 ? (
                                         stats.recentRequests.map((request) => (
                                             <tr key={request.id}>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

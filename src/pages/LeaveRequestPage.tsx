@@ -207,7 +207,7 @@ const LeaveRequestPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center space-x-4">
-                                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${request.status === 'PENDING'
+                                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${request.status === 'PENDING'
                                             ? 'bg-yellow-50 text-yellow-800'
                                             : request.status === 'APPROVED'
                                                 ? 'bg-green-50 text-green-800'
@@ -220,17 +220,17 @@ const LeaveRequestPage: React.FC = () => {
                                             <div className="flex space-x-2">
                                                 <button
                                                     onClick={() => handleEdit(request)}
-                                                    className="p-1.5 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-full transition-colors duration-200"
+                                                    className="p-1 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded transition-colors duration-200"
                                                     title="Edit pengajuan"
                                                 >
-                                                    <FiEdit2 className="h-4 w-4" />
+                                                    <FiEdit2 className="h-3.5 w-3.5" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(request.id)}
-                                                    className="p-1.5 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-full transition-colors duration-200"
+                                                    className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-colors duration-200"
                                                     title="Hapus pengajuan"
                                                 >
-                                                    <FiTrash2 className="h-4 w-4" />
+                                                    <FiTrash2 className="h-3.5 w-3.5" />
                                                 </button>
                                             </div>
                                         )}
@@ -238,16 +238,16 @@ const LeaveRequestPage: React.FC = () => {
                                 </div>
 
                                 {/* Approval Status */}
-                                <div className="px-8 py-5 bg-gray-50">
-                                    <h4 className="text-base font-medium text-gray-900 mb-4">Status Persetujuan</h4>
-                                    <div className="space-y-4">
+                                <div className="px-4 py-3 bg-gray-50 rounded-md">
+                                    <h4 className="text-sm font-medium text-gray-900 mb-3">Status Persetujuan</h4>
+                                    <div className="space-y-2">
                                         {getApprovalStatusDetails(request).map((approval, index) => (
-                                            <div key={index} className="flex items-center justify-between">
-                                                <div className="w-36">
-                                                    <span className="text-sm text-gray-600">{approval.role}</span>
+                                            <div key={index} className="flex items-center justify-between text-sm">
+                                                <div className="w-28">
+                                                    <span className="text-gray-600">{approval.role}</span>
                                                 </div>
-                                                <div className="flex items-center space-x-8">
-                                                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${approval.status === 'PENDING'
+                                                <div className="flex items-center space-x-4">
+                                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${approval.status === 'PENDING'
                                                         ? 'bg-yellow-50 text-yellow-800'
                                                         : approval.status === 'APPROVED'
                                                             ? 'bg-green-50 text-green-800'
@@ -256,10 +256,10 @@ const LeaveRequestPage: React.FC = () => {
                                                         {approval.status === 'PENDING' ? 'Menunggu' :
                                                             approval.status === 'APPROVED' ? 'Disetujui' : 'Ditolak'}
                                                     </span>
-                                                    <span className="text-sm text-gray-600 w-36">{approval.approver}</span>
-                                                    <span className="text-sm text-gray-500 w-44">{approval.approvedAt}</span>
+                                                    <span className="text-gray-600 w-28">{approval.approver}</span>
+                                                    <span className="text-gray-500 w-36">{approval.approvedAt}</span>
                                                     {approval.remarks !== '-' && (
-                                                        <span className="text-sm text-gray-600">"{approval.remarks}"</span>
+                                                        <span className="text-gray-600 italic">"{approval.remarks}"</span>
                                                     )}
                                                 </div>
                                             </div>
@@ -420,7 +420,7 @@ const LeaveRequestPage: React.FC = () => {
                     )}
                 </div>
             </div>
-        </DashboardLayout>
+        </DashboardLayout >
     );
 };
 

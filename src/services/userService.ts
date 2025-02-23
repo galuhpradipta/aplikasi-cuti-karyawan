@@ -1,20 +1,5 @@
-import axios from "axios";
-import { getAuthToken } from "../utils/auth";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-export interface User {
-  id: number;
-  nik: string;
-  name: string;
-  email: string;
-  role: {
-    id: number;
-    name: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-}
+import api from "./api";
+import { User, Role, Division } from "../types/shared";
 
 export interface UserResponse {
   users: User[];
@@ -22,53 +7,50 @@ export interface UserResponse {
     total: number;
     page: number;
     limit: number;
-    totalPages: number;
   };
 }
 
 export interface UserUpdateData {
-  name: string;
-  email: string;
-  nik: string;
-  roleId: number;
-  password?: string;
+  name?: string;
+  email?: string;
+  nik?: string;
+  roleId?: number;
+  divisionId?: number | null;
 }
 
 const userService = {
-  getUsers: async (
-    page: number = 1,
-    limit: number = 10,
-    search: string = ""
-  ): Promise<UserResponse> => {
-    const token = getAuthToken();
-    const response = await axios.get(`${API_URL}/api/users`, {
-      params: { page, limit, search },
-      headers: { Authorization: `Bearer ${token}` },
+  async getUsers(
+    page: number,
+    limit: number,
+    search?: string
+  ): Promise<UserResponse> {
+    const { data } = await api.get<UserResponse>("/users", {
+      params: {
+        page,
+        limit,
+        search,
+      },
     });
-    return response.data;
+    return data;
   },
 
-  getUserById: async (id: number): Promise<User> => {
-    const token = getAuthToken();
-    const response = await axios.get(`${API_URL}/api/users/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+  async updateUser(id: number, userData: UserUpdateData): Promise<User> {
+    const { data } = await api.put<User>(`/users/${id}`, userData);
+    return data;
   },
 
-  updateUser: async (id: number, userData: UserUpdateData): Promise<User> => {
-    const token = getAuthToken();
-    const response = await axios.put(`${API_URL}/api/users/${id}`, userData, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+  async deleteUser(id: number): Promise<void> {
+    await api.delete(`/users/${id}`);
   },
 
-  deleteUser: async (id: number): Promise<void> => {
-    const token = getAuthToken();
-    await axios.delete(`${API_URL}/api/users/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  async getRoles(): Promise<Role[]> {
+    const { data } = await api.get<Role[]>("/auth/roles");
+    return data;
+  },
+
+  async getDivisions(): Promise<Division[]> {
+    const { data } = await api.get<Division[]>("/auth/divisions");
+    return data;
   },
 };
 

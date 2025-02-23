@@ -96,11 +96,11 @@ export default function ApprovalPage() {
                 )}
 
                 {approvals.length === 0 ? (
-                    <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                    <div className="bg-white shadow overflow-hidden rounded-md p-4 text-center text-gray-500">
                         Tidak ada permohonan cuti yang perlu disetujui
                     </div>
                 ) : (
-                    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div className="bg-white shadow overflow-hidden rounded-md">
                         <ul className="divide-y divide-gray-200">
                             {approvals.map((approval) => {
                                 const canUserApprove = user?.role.name && canApprove(
@@ -112,38 +112,38 @@ export default function ApprovalPage() {
                                 );
 
                                 return (
-                                    <li key={approval.id} className="p-6">
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between">
+                                    <li key={approval.id} className="p-4">
+                                        <div className="space-y-2.5">
+                                            <div className="flex justify-between items-center">
                                                 <div>
-                                                    <h3 className="text-lg font-medium text-gray-900">
+                                                    <h3 className="text-base font-semibold text-gray-900">
                                                         {approval.leaveRequest.user.name}
                                                     </h3>
-                                                    <p className="text-sm text-gray-500">NIK: {approval.leaveRequest.user.nik}</p>
+                                                    <p className="text-xs text-gray-500 mt-0.5">NIK: {approval.leaveRequest.user.nik}</p>
                                                 </div>
-                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-yellow-50 text-yellow-800">
                                                     {approval.leaveRequest.leaveType.name}
                                                 </span>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Tanggal Cuti</p>
-                                                    <p className="mt-1">
+                                                    <p className="text-xs font-medium text-gray-500">Tanggal Cuti</p>
+                                                    <p className="mt-0.5 text-sm text-gray-900">
                                                         {format(new Date(approval.leaveRequest.startDate), 'dd MMMM yyyy', { locale: id })}
                                                         {' - '}
                                                         {format(new Date(approval.leaveRequest.endDate), 'dd MMMM yyyy', { locale: id })}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-500">Alasan</p>
-                                                    <p className="mt-1">{approval.leaveRequest.reason}</p>
+                                                    <p className="text-xs font-medium text-gray-500">Alasan</p>
+                                                    <p className="mt-0.5 text-sm text-gray-900">{approval.leaveRequest.reason}</p>
                                                 </div>
                                             </div>
 
-                                            <div className="bg-gray-50 p-4 rounded-lg">
-                                                <h4 className="text-sm font-medium text-gray-700 mb-2">Status Persetujuan</h4>
-                                                <div className="space-y-2">
+                                            <div className="bg-gray-50 px-2.5 py-2 rounded-sm">
+                                                <h4 className="text-xs font-medium text-gray-600 mb-1.5">Status Persetujuan</h4>
+                                                <div className="space-y-1">
                                                     {getApprovalStatus(
                                                         approval.leaveRequest.approvals.map(a => ({
                                                             status: a.status,
@@ -157,11 +157,11 @@ export default function ApprovalPage() {
                                                         user?.role.name as RoleType
                                                     ).map((status) => (
                                                         <div key={status.role} className="flex items-center justify-between">
-                                                            <span className="text-sm text-gray-600">{status.role}</span>
-                                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                                ${status.status === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                                                                    status.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                                                                        'bg-yellow-100 text-yellow-800'}`}>
+                                                            <span className="text-xs font-medium text-gray-600">{status.role}</span>
+                                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium
+                                                                ${status.status === 'APPROVED' ? 'bg-green-50 text-green-700' :
+                                                                    status.status === 'REJECTED' ? 'bg-red-50 text-red-700' :
+                                                                        'bg-yellow-50 text-yellow-700'}`}>
                                                                 {status.status === 'APPROVED' ? 'Disetujui' :
                                                                     status.status === 'REJECTED' ? 'Ditolak' : 'Menunggu'}
                                                             </span>
@@ -173,31 +173,31 @@ export default function ApprovalPage() {
                                             {canUserApprove && (
                                                 <>
                                                     <div>
-                                                        <label htmlFor={`remarks-${approval.id}`} className="block text-sm font-medium text-gray-700">
+                                                        <label htmlFor={`remarks-${approval.id}`} className="block text-xs font-medium text-gray-600">
                                                             Catatan (opsional)
                                                         </label>
                                                         <textarea
                                                             id={`remarks-${approval.id}`}
                                                             rows={2}
-                                                            className="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                                                            className="mt-1 block w-full shadow-sm text-sm border-gray-200 rounded-sm focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
                                                             placeholder="Tambahkan catatan..."
                                                             value={remarks[approval.id] || ''}
                                                             onChange={(e) => setRemarks(prev => ({ ...prev, [approval.id]: e.target.value }))}
                                                         />
                                                     </div>
 
-                                                    <div className="flex justify-end space-x-3">
+                                                    <div className="flex justify-end space-x-2">
                                                         <button
                                                             onClick={() => handleApproval(approval.id, 'REJECTED')}
                                                             disabled={processingId === approval.id}
-                                                            className="inline-flex items-center px-4 py-2 border border-red-600 text-sm font-medium rounded-md text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="inline-flex items-center px-3 py-1.5 border border-red-500 text-xs font-medium rounded-sm text-red-600 bg-white hover:bg-red-50 focus:outline-none focus:ring-1 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             Tolak
                                                         </button>
                                                         <button
                                                             onClick={() => handleApproval(approval.id, 'APPROVED')}
                                                             disabled={processingId === approval.id}
-                                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                                                         >
                                                             Setujui
                                                         </button>

@@ -1,9 +1,10 @@
 import axios from "axios";
+import { User } from "../types/shared";
 
-const API_URL = "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}/api`,
   headers: {
     "Content-Type": "application/json",
   },
@@ -27,20 +28,12 @@ export interface RegisterData extends LoginCredentials {
   name: string;
   nik: string;
   roleId: number;
+  divisionId?: number;
 }
 
 export interface AuthResponse {
   message: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    roleId: number;
-    role: {
-      id: number;
-      name: string;
-    };
-  };
+  user: User;
   token: string;
 }
 

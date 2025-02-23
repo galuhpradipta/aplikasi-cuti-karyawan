@@ -5,7 +5,8 @@ import {
     Alert
 } from '@mui/material';
 import { FiEdit2, FiTrash2, FiSearch } from 'react-icons/fi';
-import userService, { User, UserUpdateData } from '../services/userService';
+import userService, { UserUpdateData } from '../services/userService';
+import { User } from '../types/shared';
 import EditUserDialog from '../components/EditUserDialog';
 import DashboardLayout from '../components/DashboardLayout';
 
@@ -151,6 +152,9 @@ const UserManagementPage: React.FC = () => {
                                             Role
                                         </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Divisi
+                                        </th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Aksi
                                         </th>
                                     </tr>
@@ -171,6 +175,17 @@ const UserManagementPage: React.FC = () => {
                                                 <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
                                                     {user.role.name}
                                                 </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                {user.division ? (
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                                        {user.division.name}
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                                        -
+                                                    </span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 <div className="flex space-x-2">
