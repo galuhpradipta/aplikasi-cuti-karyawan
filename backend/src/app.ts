@@ -1,4 +1,9 @@
-import express, { Request, Response } from "express";
+import express, {
+  Request,
+  Response,
+  NextFunction,
+  ErrorRequestHandler,
+} from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import leaveRequestRoutes from "./routes/leaveRequestRoutes";
@@ -22,7 +27,12 @@ app.use("/api/users", userRoutes);
 app.use("/api/reports", reportRoutes);
 
 // Error handling middleware
-const errorHandler = (err: Error, _req: Request, res: Response): void => {
+const errorHandler: ErrorRequestHandler = (
+  err: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+): void => {
   console.error(err.stack);
   res.status(500).json({ message: "Something went wrong!" });
 };
