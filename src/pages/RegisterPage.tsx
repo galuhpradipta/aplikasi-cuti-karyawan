@@ -3,16 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { authService, RegisterData } from '../services/api';
 import { AxiosError } from 'axios';
 import api from '../services/api';
-
-interface Role {
-    id: number;
-    name: string;
-}
-
-interface Division {
-    id: number;
-    name: string;
-}
+import { Role, Division, REGISTERABLE_ROLES } from '../types/shared';
 
 export default function RegisterPage() {
     const navigate = useNavigate();
@@ -23,7 +14,7 @@ export default function RegisterPage() {
         password: '',
         name: '',
         nik: '',
-        roleId: 1,
+        roleId: 0,
         divisionId: undefined,
     });
     const [error, setError] = useState<string>('');
@@ -42,14 +33,19 @@ export default function RegisterPage() {
                     api.get<Division[]>('/auth/divisions')
                 ]);
 
-                console.log('Fetched roles:', rolesResponse.data);
+                // Filter roles using the shared REGISTERABLE_ROLES constant
+                const filteredRoles = rolesResponse.data.filter(
+                    role => REGISTERABLE_ROLES.includes(role.name)
+                );
+
+                console.log('Fetched roles:', filteredRoles);
                 console.log('Fetched divisions:', divisionsResponse.data);
 
-                setRoles(rolesResponse.data);
+                setRoles(filteredRoles);
                 setDivisions(divisionsResponse.data);
 
-                if (rolesResponse.data.length > 0) {
-                    const defaultRole = rolesResponse.data[0];
+                if (filteredRoles.length > 0) {
+                    const defaultRole = filteredRoles[0];
                     console.log('Setting default role:', defaultRole);
                     setFormData(prev => ({ ...prev, roleId: defaultRole.id }));
                 }
@@ -89,7 +85,8 @@ export default function RegisterPage() {
     };
 
     const selectedRole = roles.find(role => role.id === formData.roleId);
-    const needsDivision = selectedRole?.name === 'Karyawan' || selectedRole?.name === 'Kepala Divisi';
+    // Since we only have Karyawan and Kepala Divisi roles now, always show division
+    const needsDivision = true;
 
     console.log('Debug state:', {
         selectedRole,
@@ -205,9 +202,10 @@ export default function RegisterPage() {
                                 required
                                 disabled={rolesLoading}
                                 className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                value={formData.roleId}
+                                value={formData.roleId || ''}
                                 onChange={handleChange}
                             >
+                                <option value="">Pilih Peran</option>
                                 {rolesLoading ? (
                                     <option>Memuat peran...</option>
                                 ) : roles.length > 0 ? (
@@ -221,35 +219,33 @@ export default function RegisterPage() {
                                 )}
                             </select>
                         </div>
-                        {needsDivision && (
-                            <div>
-                                <label htmlFor="divisionId" className="sr-only">
-                                    Divisi
-                                </label>
-                                <select
-                                    id="divisionId"
-                                    name="divisionId"
-                                    required
-                                    disabled={divisionsLoading}
-                                    className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                                    value={formData.divisionId || ''}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Pilih Divisi</option>
-                                    {divisionsLoading ? (
-                                        <option>Memuat divisi...</option>
-                                    ) : divisions.length > 0 ? (
-                                        divisions.map((division) => (
-                                            <option key={division.id} value={division.id}>
-                                                {division.name}
-                                            </option>
-                                        ))
-                                    ) : (
-                                        <option>Tidak ada divisi tersedia</option>
-                                    )}
-                                </select>
-                            </div>
-                        )}
+                        <div>
+                            <label htmlFor="divisionId" className="sr-only">
+                                Divisi
+                            </label>
+                            <select
+                                id="divisionId"
+                                name="divisionId"
+                                required
+                                disabled={divisionsLoading}
+                                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                value={formData.divisionId || ''}
+                                onChange={handleChange}
+                            >
+                                <option value="">Pilih Divisi</option>
+                                {divisionsLoading ? (
+                                    <option>Memuat divisi...</option>
+                                ) : divisions.length > 0 ? (
+                                    divisions.map((division) => (
+                                        <option key={division.id} value={division.id}>
+                                            {division.name}
+                                        </option>
+                                    ))
+                                ) : (
+                                    <option>Tidak ada divisi tersedia</option>
+                                )}
+                            </select>
+                        </div>
                     </div>
 
                     {error && (
@@ -259,7 +255,7 @@ export default function RegisterPage() {
                     <div className="flex flex-col space-y-4">
                         <button
                             type="submit"
-                            disabled={loading || rolesLoading || (needsDivision && !formData.divisionId)}
+                            disabled={loading || rolesLoading || !formData.roleId || !formData.divisionId}
                             className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-50"
                         >
                             {loading ? 'Membuat akun...' : 'Buat akun'}

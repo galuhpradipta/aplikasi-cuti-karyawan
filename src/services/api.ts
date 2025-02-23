@@ -1,4 +1,5 @@
 import axios from "axios";
+import { User } from "../types/shared";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -32,16 +33,7 @@ export interface RegisterData extends LoginCredentials {
 
 export interface AuthResponse {
   message: string;
-  user: {
-    id: number;
-    email: string;
-    name: string;
-    roleId: number;
-    role: {
-      id: number;
-      name: string;
-    };
-  };
+  user: User;
   token: string;
 }
 

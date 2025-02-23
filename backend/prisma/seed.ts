@@ -29,7 +29,7 @@ async function main() {
   });
 
   // Create Direktur
-  const direktur = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "Direktur Utama",
       email: "direktur@company.com",
@@ -40,7 +40,7 @@ async function main() {
   });
 
   // Create HRD
-  const hrd = await prisma.user.create({
+  await prisma.user.create({
     data: {
       name: "HRD Manager",
       email: "hrd@company.com",
@@ -61,7 +61,7 @@ async function main() {
     });
 
     // Create Kepala Divisi
-    const kepalaDiv = await prisma.user.create({
+    await prisma.user.create({
       data: {
         name: `Kepala ${divisions[i]}`,
         email: `kepala.${divisions[i].toLowerCase()}@company.com`,
